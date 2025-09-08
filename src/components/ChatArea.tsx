@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, User } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -12,26 +13,60 @@ interface Message {
   timestamp: string;
 }
 
-const mockMessages: Message[] = [
-  {
-    id: "1",
-    content: "Olá! Estou procurando um desenvolvedor frontend com experiência em React e TypeScript para um projeto de e-commerce.",
-    type: "user",
-    timestamp: "14:30"
-  },
-  {
-    id: "2",
-    content: "Encontrei alguns candidatos que se encaixam no seu perfil. Baseado nos seus requisitos, identifiquei 3 candidatos com alta compatibilidade. Você pode ver os detalhes na seção ao lado.",
-    type: "bot",
-    timestamp: "14:31"
-  }
-];
-
 export const ChatArea = () => {
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [sessionId] = useState(() => `session_${Date.now()}`);
 
-  const handleSendMessage = () => {
+  useEffect(() => {
+    loadChatHistory();
+  }, []);
+
+  const loadChatHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('n8n_chat_histories')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('id', { ascending: true });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const loadedMessages = data.map((record: any) => ({
+          id: record.id.toString(),
+          content: record.message.content,
+          type: record.message.type,
+          timestamp: new Date(record.message.timestamp).toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })
+        }));
+        setMessages(loadedMessages);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar histórico:', error);
+    }
+  };
+
+  const saveMessage = async (message: Message) => {
+    try {
+      await supabase
+        .from('n8n_chat_histories')
+        .insert({
+          session_id: sessionId,
+          message: {
+            content: message.content,
+            type: message.type,
+            timestamp: new Date().toISOString()
+          }
+        });
+    } catch (error) {
+      console.error('Erro ao salvar mensagem:', error);
+    }
+  };
+
+  const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
     
     const message: Message = {
@@ -42,7 +77,21 @@ export const ChatArea = () => {
     };
     
     setMessages(prev => [...prev, message]);
+    await saveMessage(message);
     setNewMessage("");
+
+    // Simular resposta do bot por enquanto
+    setTimeout(async () => {
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Processando sua solicitação... Em breve conectarei com o webhook N8N para buscar candidatos compatíveis.",
+        type: "bot",
+        timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      };
+      
+      setMessages(prev => [...prev, botMessage]);
+      await saveMessage(botMessage);
+    }, 1000);
   };
 
   return (

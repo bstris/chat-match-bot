@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { Star, MapPin, Calendar, Code, Briefcase } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Candidate {
   id: string;
@@ -16,43 +18,42 @@ interface Candidate {
   avatar: string;
 }
 
-const mockCandidates: Candidate[] = [
-  {
-    id: "1",
-    name: "Ana Silva",
-    title: "Frontend Developer",
-    location: "São Paulo, SP",
-    experience: "4 anos",
-    compatibility: 95,
-    skills: ["React", "TypeScript", "Next.js", "Tailwind"],
-    summary: "Desenvolvedora especializada em React com forte experiência em e-commerce",
-    avatar: "AS"
-  },
-  {
-    id: "2", 
-    name: "Carlos Oliveira",
-    title: "Full Stack Developer",
-    location: "Rio de Janeiro, RJ",
-    experience: "6 anos",
-    compatibility: 88,
-    skills: ["React", "Node.js", "TypeScript", "MongoDB"],
-    summary: "Desenvolvedor full stack com experiência em projetos de grande escala",
-    avatar: "CO"
-  },
-  {
-    id: "3",
-    name: "Mariana Costa",
-    title: "Frontend Developer",
-    location: "Belo Horizonte, MG", 
-    experience: "3 anos",
-    compatibility: 82,
-    skills: ["React", "Vue.js", "JavaScript", "CSS"],
-    summary: "Desenvolvedora frontend focada em UX e performance",
-    avatar: "MC"
-  }
-];
-
 export const CandidateResults = () => {
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+
+  useEffect(() => {
+    loadCandidatesFromDocuments();
+  }, []);
+
+  const loadCandidatesFromDocuments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .limit(10);
+
+      if (error) throw error;
+
+      if (data) {
+        // Converter documentos em candidatos fictícios para demonstração
+        const fakeCandidates: Candidate[] = data.map((doc: any, index: number) => ({
+          id: doc.id.toString(),
+          name: `Candidato ${index + 1}`,
+          title: "Desenvolvedor",
+          location: "Brasil",
+          experience: `${Math.floor(Math.random() * 8) + 1} anos`,
+          compatibility: Math.floor(Math.random() * 30) + 70,
+          skills: ["React", "JavaScript", "TypeScript"].slice(0, Math.floor(Math.random() * 3) + 1),
+          summary: doc.content?.substring(0, 100) + "..." || "Candidato encontrado na base de dados",
+          avatar: `C${index + 1}`
+        }));
+
+        setCandidates(fakeCandidates);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar candidatos:', error);
+    }
+  };
   return (
     <Card className="w-96 h-full bg-card border-border">
       <div className="p-4 border-b border-border">
@@ -61,13 +62,13 @@ export const CandidateResults = () => {
           Melhores Matches
         </h3>
         <p className="text-sm text-muted-foreground">
-          {mockCandidates.length} candidatos encontrados
+          {candidates.length} candidatos encontrados
         </p>
       </div>
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
-          {mockCandidates.map((candidate, index) => (
+          {candidates.map((candidate, index) => (
             <Card 
               key={candidate.id}
               className="p-4 cursor-pointer hover:bg-secondary/50 transition-all duration-300 border-border bg-gradient-card hover:shadow-glow"

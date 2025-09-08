@@ -2,36 +2,53 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Plus, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatHistory {
-  id: string;
+  session_id: string;
   title: string;
   timestamp: string;
   preview: string;
 }
 
-const mockHistory: ChatHistory[] = [
-  {
-    id: "1",
-    title: "Desenvolvedor Frontend",
-    timestamp: "2 min atrás",
-    preview: "Procuro alguém com React e TypeScript..."
-  },
-  {
-    id: "2", 
-    title: "Designer UX/UI",
-    timestamp: "1 hora atrás",
-    preview: "Preciso de um designer com Figma..."
-  },
-  {
-    id: "3",
-    title: "Analista de Dados",
-    timestamp: "Ontem",
-    preview: "Busco profissional com Python..."
-  }
-];
-
 export const ChatSidebar = () => {
+  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
+
+  useEffect(() => {
+    loadChatHistory();
+  }, []);
+
+  const loadChatHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('n8n_chat_histories')
+        .select('session_id, message')
+        .order('id', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        // Agrupar por session_id e pegar a primeira mensagem de cada sessão
+        const sessions = new Map();
+        data.forEach((record: any) => {
+          if (!sessions.has(record.session_id)) {
+            const content = record.message?.content || '';
+            sessions.set(record.session_id, {
+              session_id: record.session_id,
+              title: content.length > 30 ? content.substring(0, 30) + '...' : content,
+              timestamp: new Date(record.message?.timestamp || Date.now()).toLocaleString('pt-BR'),
+              preview: content.length > 50 ? content.substring(0, 50) + '...' : content
+            });
+          }
+        });
+
+        setChatHistory(Array.from(sessions.values()).slice(0, 10));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar histórico:', error);
+    }
+  };
   return (
     <Card className="w-80 h-full bg-card border-border">
       <div className="p-4 border-b border-border">
@@ -49,9 +66,9 @@ export const ChatSidebar = () => {
         
         <ScrollArea className="h-[calc(100vh-200px)]">
           <div className="space-y-2">
-            {mockHistory.map((chat) => (
+            {chatHistory.map((chat) => (
               <Card 
-                key={chat.id}
+                key={chat.session_id}
                 className="p-3 cursor-pointer hover:bg-secondary/50 transition-colors border-border bg-gradient-card"
               >
                 <div className="flex items-start space-x-3">
