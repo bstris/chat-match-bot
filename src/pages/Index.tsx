@@ -1,12 +1,26 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { ChatSidebar } from "@/components/ChatSidebar";
+import { ChatArea } from "@/components/ChatArea";
+import { CandidateResults } from "@/components/CandidateResults";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-3">
+          <h1 className="text-xl font-bold text-foreground">
+            Sistema de Seleção de Candidatos
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Conectado via webhook N8N • Chat inteligente para matching de candidatos
+          </p>
+        </div>
+      </header>
+      
+      <main className="flex h-[calc(100vh-80px)] p-4 gap-4">
+        <ChatSidebar />
+        <ChatArea />
+        <CandidateResults />
+      </main>
     </div>
   );
 };
