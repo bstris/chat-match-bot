@@ -55,7 +55,7 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
     }
   };
   return (
-    <Card className="w-80 h-full bg-card border-border">
+    <Card className="w-80 h-full bg-card border-border shadow-card rounded-xl">
       <div className="p-4 border-b border-border">
         <Button className="w-full bg-gradient-primary hover:shadow-glow transition-all duration-300">
           <Plus className="w-4 h-4 mr-2" />
@@ -74,7 +74,7 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
             {chatHistory.map((chat) => (
               <Card 
                 key={chat.session_id}
-                className={`p-3 cursor-pointer hover:bg-secondary/50 transition-colors border-border bg-gradient-card ${
+                className={`p-3 cursor-pointer hover:bg-secondary/50 transition-colors border-border bg-gradient-card shadow-card rounded-lg ${
                   currentSessionId === chat.session_id ? 'ring-2 ring-primary' : ''
                 }`}
                 onClick={() => onSelectChat?.(chat.session_id)}

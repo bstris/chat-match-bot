@@ -111,10 +111,10 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
   };
 
   return (
-    <Card className="flex-1 h-full bg-card border-border flex flex-col">
+    <Card className="flex-1 h-full bg-card border-border shadow-card rounded-xl flex flex-col">
       <div className="p-4 border-b border-border">
         <div className="flex items-center space-x-3 mb-2">
-          <div className="px-4 py-2 bg-gray-600 text-white font-bold text-lg rounded">
+          <div className="px-4 py-2 bg-slate-600 text-white font-bold text-lg rounded-lg shadow-sm">
             ENGEFORM
           </div>
           <h2 className="text-lg font-semibold text-foreground">
@@ -122,7 +122,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
           </h2>
         </div>
         <div className="flex items-center space-x-3 mb-2">
-          <div className="px-4 py-1 bg-blue-800 text-white font-bold text-sm rounded">
+          <div className="px-4 py-1 bg-blue-800 text-white font-bold text-sm rounded-lg shadow-sm">
             ENGENHARIA
           </div>
         </div>
@@ -155,7 +155,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
               <div className={`flex-1 max-w-[70%] ${
                 message.type === 'human' ? 'text-right' : ''
               }`}>
-                <Card className={`p-3 ${
+                <Card className={`p-3 shadow-card rounded-lg ${
                   message.type === 'human'
                     ? 'bg-gradient-primary text-primary-foreground ml-auto'
                     : 'bg-gradient-card'

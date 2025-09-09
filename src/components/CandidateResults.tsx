@@ -56,7 +56,7 @@ export const CandidateResults = () => {
     }
   };
   return (
-    <Card className="w-96 h-full bg-card border-border">
+    <Card className="w-96 h-full bg-card border-border shadow-card rounded-xl">
       <div className="p-4 border-b border-border">
         <h3 className="text-lg font-semibold text-foreground flex items-center">
           <Star className="w-5 h-5 mr-2 text-primary" />
@@ -72,7 +72,7 @@ export const CandidateResults = () => {
           {candidates.map((candidate, index) => (
             <Card 
               key={candidate.id}
-              className="p-4 cursor-pointer hover:bg-secondary/50 transition-all duration-300 border-border bg-gradient-card hover:shadow-glow"
+              className="p-4 cursor-pointer hover:bg-secondary/50 transition-all duration-300 border-border bg-gradient-card hover:shadow-glow shadow-card rounded-lg"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3">
@@ -134,7 +134,7 @@ export const CandidateResults = () => {
       </ScrollArea>
 
       <div className="p-4 border-t border-border">
-        <Card className="p-3 bg-gradient-card">
+        <Card className="p-3 bg-gradient-card shadow-card rounded-lg">
           <div className="flex items-center space-x-2 text-primary mb-2">
             <Briefcase className="w-4 h-4" />
             <span className="text-sm font-medium">Dica do Sistema</span>
