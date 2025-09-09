@@ -96,18 +96,43 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
     await saveMessage(message);
     setNewMessage("");
 
-    // Simular resposta do bot por enquanto
-    setTimeout(async () => {
+    // Chamar webhook N8N
+    try {
+      const response = await fetch('https://endy-ai.up.railway.app/webhook/95dd61c8-750c-49e7-b9a0-05afa225838a', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: newMessage,
+          sessionId: currentSessionId
+        })
+      });
+
+      const data = await response.json();
+      
       const iaMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Processando sua solicitação... Em breve conectarei com o webhook N8N para buscar candidatos compatíveis.",
+        content: data.response || "Resposta recebida do sistema de IA",
         type: "ia",
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       };
       
       setMessages(prev => [...prev, iaMessage]);
       await saveMessage(iaMessage);
-    }, 1000);
+    } catch (error) {
+      console.error('Erro ao chamar webhook:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.",
+        type: "ia",
+        timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      await saveMessage(errorMessage);
+    }
   };
 
   return (
