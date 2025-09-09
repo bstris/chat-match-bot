@@ -1,8 +1,11 @@
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatArea } from "@/components/ChatArea";
 import { CandidateResults } from "@/components/CandidateResults";
+import { useState } from "react";
 
 const Index = () => {
+  const [selectedSessionId, setSelectedSessionId] = useState<string>();
+  
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -17,8 +20,14 @@ const Index = () => {
       </header>
       
       <main className="flex h-[calc(100vh-80px)] p-4 gap-4">
-        <ChatSidebar />
-        <ChatArea />
+        <ChatSidebar 
+          onSelectChat={setSelectedSessionId}
+          currentSessionId={selectedSessionId}
+        />
+        <ChatArea 
+          sessionId={selectedSessionId}
+          onSessionCreate={setSelectedSessionId}
+        />
         <CandidateResults />
       </main>
     </div>

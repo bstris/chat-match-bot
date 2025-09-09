@@ -27,28 +27,29 @@ export const CandidateResults = () => {
 
   const loadCandidatesFromDocuments = async () => {
     try {
+      // Carregar dados da tabela GUPPY para obter nomes reais
       const { data, error } = await supabase
-        .from('documents')
+        .from('GUPPY')
         .select('*')
         .limit(10);
 
       if (error) throw error;
 
       if (data) {
-        // Converter documentos em candidatos fictícios para demonstração
-        const fakeCandidates: Candidate[] = data.map((doc: any, index: number) => ({
-          id: doc.id.toString(),
-          name: `Candidato ${index + 1}`,
-          title: "Desenvolvedor",
-          location: "Brasil",
+        // Usar dados reais dos candidatos
+        const realCandidates: Candidate[] = data.map((candidate: any, index: number) => ({
+          id: candidate.candidatoId?.toString() || candidate.id_candidato?.toString() || index.toString(),
+          name: candidate.nome || `Candidato ${index + 1}`,
+          title: candidate.title || "Desenvolvedor",
+          location: candidate.zipCode || "Brasil",
           experience: `${Math.floor(Math.random() * 8) + 1} anos`,
           compatibility: Math.floor(Math.random() * 30) + 70,
           skills: ["React", "JavaScript", "TypeScript"].slice(0, Math.floor(Math.random() * 3) + 1),
-          summary: doc.content?.substring(0, 100) + "..." || "Candidato encontrado na base de dados",
-          avatar: `C${index + 1}`
+          summary: candidate.description?.substring(0, 100) + "..." || "Candidato da base de dados",
+          avatar: candidate.nome ? candidate.nome.charAt(0).toUpperCase() : `C${index + 1}`
         }));
 
-        setCandidates(fakeCandidates);
+        setCandidates(realCandidates);
       }
     } catch (error) {
       console.error('Erro ao carregar candidatos:', error);

@@ -12,7 +12,12 @@ interface ChatHistory {
   preview: string;
 }
 
-export const ChatSidebar = () => {
+interface ChatSidebarProps {
+  onSelectChat?: (sessionId: string) => void;
+  currentSessionId?: string;
+}
+
+export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps) => {
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
 
   useEffect(() => {
@@ -69,7 +74,10 @@ export const ChatSidebar = () => {
             {chatHistory.map((chat) => (
               <Card 
                 key={chat.session_id}
-                className="p-3 cursor-pointer hover:bg-secondary/50 transition-colors border-border bg-gradient-card"
+                className={`p-3 cursor-pointer hover:bg-secondary/50 transition-colors border-border bg-gradient-card ${
+                  currentSessionId === chat.session_id ? 'ring-2 ring-primary' : ''
+                }`}
+                onClick={() => onSelectChat?.(chat.session_id)}
               >
                 <div className="flex items-start space-x-3">
                   <MessageSquare className="w-4 h-4 text-primary mt-1 flex-shrink-0" />

@@ -9,25 +9,36 @@ import { supabase } from "@/integrations/supabase/client";
 interface Message {
   id: string;
   content: string;
-  type: 'user' | 'bot';
+  type: 'human' | 'ia';
   timestamp: string;
 }
 
-export const ChatArea = () => {
+interface ChatAreaProps {
+  sessionId?: string;
+  onSessionCreate?: (sessionId: string) => void;
+}
+
+export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatAreaProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [sessionId] = useState(() => `session_${Date.now()}`);
+  const [currentSessionId, setCurrentSessionId] = useState(() => 
+    propSessionId || `session_${Date.now()}`
+  );
 
   useEffect(() => {
+    if (propSessionId && propSessionId !== currentSessionId) {
+      setCurrentSessionId(propSessionId);
+      setMessages([]);
+    }
     loadChatHistory();
-  }, []);
+  }, [propSessionId, currentSessionId]);
 
   const loadChatHistory = async () => {
     try {
       const { data, error } = await supabase
         .from('n8n_chat_histories')
         .select('*')
-        .eq('session_id', sessionId)
+        .eq('session_id', currentSessionId)
         .order('id', { ascending: true });
 
       if (error) throw error;
@@ -54,7 +65,7 @@ export const ChatArea = () => {
       await supabase
         .from('n8n_chat_histories')
         .insert({
-          session_id: sessionId,
+          session_id: currentSessionId,
           message: {
             content: message.content,
             type: message.type,
@@ -72,9 +83,14 @@ export const ChatArea = () => {
     const message: Message = {
       id: Date.now().toString(),
       content: newMessage,
-      type: "user",
+      type: "human",
       timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     };
+    
+    // Se é uma nova sessão, notificar o componente pai
+    if (currentSessionId.startsWith('session_') && onSessionCreate) {
+      onSessionCreate(currentSessionId);
+    }
     
     setMessages(prev => [...prev, message]);
     await saveMessage(message);
@@ -82,24 +98,34 @@ export const ChatArea = () => {
 
     // Simular resposta do bot por enquanto
     setTimeout(async () => {
-      const botMessage: Message = {
+      const iaMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: "Processando sua solicitação... Em breve conectarei com o webhook N8N para buscar candidatos compatíveis.",
-        type: "bot",
+        type: "ia",
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       };
       
-      setMessages(prev => [...prev, botMessage]);
-      await saveMessage(botMessage);
+      setMessages(prev => [...prev, iaMessage]);
+      await saveMessage(iaMessage);
     }, 1000);
   };
 
   return (
     <Card className="flex-1 h-full bg-card border-border flex flex-col">
       <div className="p-4 border-b border-border">
-        <h2 className="text-lg font-semibold text-foreground">
-          Chat de Busca de Candidatos
-        </h2>
+        <div className="flex items-center space-x-3 mb-2">
+          <div className="px-4 py-2 bg-gray-600 text-white font-bold text-lg rounded">
+            ENGEFORM
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">
+            Chat de Busca de Candidatos
+          </h2>
+        </div>
+        <div className="flex items-center space-x-3 mb-2">
+          <div className="px-4 py-1 bg-blue-800 text-white font-bold text-sm rounded">
+            ENGENHARIA
+          </div>
+        </div>
         <p className="text-sm text-muted-foreground">
           Descreva o perfil que você está procurando
         </p>
@@ -111,15 +137,15 @@ export const ChatArea = () => {
             <div
               key={message.id}
               className={`flex items-start space-x-3 ${
-                message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''
+                message.type === 'human' ? 'flex-row-reverse space-x-reverse' : ''
               }`}
             >
               <div className={`p-2 rounded-full ${
-                message.type === 'user' 
+                message.type === 'human' 
                   ? 'bg-gradient-primary' 
                   : 'bg-secondary'
               }`}>
-                {message.type === 'user' ? (
+                {message.type === 'human' ? (
                   <User className="w-4 h-4 text-primary-foreground" />
                 ) : (
                   <Bot className="w-4 h-4 text-foreground" />
@@ -127,16 +153,16 @@ export const ChatArea = () => {
               </div>
               
               <div className={`flex-1 max-w-[70%] ${
-                message.type === 'user' ? 'text-right' : ''
+                message.type === 'human' ? 'text-right' : ''
               }`}>
                 <Card className={`p-3 ${
-                  message.type === 'user'
+                  message.type === 'human'
                     ? 'bg-gradient-primary text-primary-foreground ml-auto'
                     : 'bg-gradient-card'
                 }`}>
                   <p className="text-sm">{message.content}</p>
                   <p className={`text-xs mt-2 ${
-                    message.type === 'user'
+                    message.type === 'human'
                       ? 'text-primary-foreground/70'
                       : 'text-muted-foreground'
                   }`}>
