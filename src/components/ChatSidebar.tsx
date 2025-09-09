@@ -13,7 +13,7 @@ interface ChatHistory {
 }
 
 interface ChatSidebarProps {
-  onSelectChat?: (sessionId: string) => void;
+  onSelectChat?: (sessionId?: string) => void;
   currentSessionId?: string;
 }
 
@@ -57,7 +57,10 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
   return (
     <Card className="w-80 h-full bg-card border-border shadow-card rounded-xl">
       <div className="p-4 border-b border-border">
-        <Button className="w-full bg-gradient-primary hover:shadow-glow transition-all duration-300">
+        <Button 
+          onClick={() => onSelectChat?.(undefined)}
+          className="w-full bg-gradient-primary hover:shadow-glow transition-all duration-300"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Nova Consulta
         </Button>

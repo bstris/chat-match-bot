@@ -138,19 +138,9 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
   return (
     <Card className="flex-1 h-full bg-card border-border shadow-card rounded-xl flex flex-col">
       <div className="p-4 border-b border-border">
-        <div className="flex items-center space-x-3 mb-2">
-          <div className="px-4 py-2 bg-slate-600 text-white font-bold text-lg rounded-lg shadow-sm">
-            ENGEFORM
-          </div>
-          <h2 className="text-lg font-semibold text-foreground">
-            Chat de Busca de Candidatos
-          </h2>
-        </div>
-        <div className="flex items-center space-x-3 mb-2">
-          <div className="px-4 py-1 bg-blue-800 text-white font-bold text-sm rounded-lg shadow-sm">
-            ENGENHARIA
-          </div>
-        </div>
+        <h2 className="text-lg font-semibold text-foreground mb-2">
+          Chat de Busca de Candidatos
+        </h2>
         <p className="text-sm text-muted-foreground">
           Descreva o perfil que você está procurando
         </p>
