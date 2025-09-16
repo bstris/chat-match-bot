@@ -50,16 +50,22 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
         data.forEach((record: any) => {
           if (!sessions.has(record.session_id)) {
             const content = record.message?.content || '';
+            const sessionNumber = record.session_id.split('_')[1] || Math.floor(Math.random() * 1000);
             sessions.set(record.session_id, {
               session_id: record.session_id,
-              title: content.length > 30 ? content.substring(0, 30) + '...' : content,
+              title: content.length > 30 ? content.substring(0, 30) + '...' : (content || `Consulta #${sessionNumber}`),
               timestamp: new Date(record.message?.timestamp || Date.now()).toLocaleString('pt-BR'),
-              preview: content.length > 50 ? content.substring(0, 50) + '...' : content
+              preview: content.length > 50 ? content.substring(0, 50) + '...' : (content || 'Nova consulta iniciada')
             });
           }
         });
 
-        setChatHistory(Array.from(sessions.values()).slice(0, 10));
+        // Ordenar por timestamp mais recente
+        const sortedSessions = Array.from(sessions.values())
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          .slice(0, 15); // Mostrar últimas 15 conversas
+
+        setChatHistory(sortedSessions);
       }
     } catch (error) {
       console.error('Erro ao carregar histórico:', error);
@@ -102,12 +108,28 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
       console.error('Erro ao limpar histórico:', error);
     }
   };
+  // Função para recarregar o histórico (chamada quando uma nova sessão é criada)
+  const refreshHistory = () => {
+    loadChatHistory();
+  };
+
+  // Expor a função de refresh para o componente pai se necessário
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadChatHistory();
+    }, 2000); // Atualiza a cada 2 segundos
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="w-80 h-full bg-card border border-border rounded-2xl flex flex-col overflow-hidden"
          style={{ boxShadow: 'var(--shadow-card)' }}>
       <div className="p-6 border-b border-border">
         <Button
-          onClick={() => onSelectChat?.(undefined)}
+          onClick={() => {
+            onSelectChat?.(undefined); // Sinaliza para criar nova sessão
+          }}
           className="w-full bg-primary hover:bg-primary/90 rounded-2xl mb-4 transition-all duration-200"
           style={{ boxShadow: 'var(--shadow-minimal)' }}
         >

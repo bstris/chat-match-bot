@@ -21,24 +21,40 @@ interface ChatAreaProps {
 export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatAreaProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [currentSessionId, setCurrentSessionId] = useState(() => 
-    propSessionId || `session_${Date.now()}`
-  );
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  // Função para criar uma nova sessão
+  const createNewSession = () => {
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setCurrentSessionId(newSessionId);
+    setMessages([]); // Limpar mensagens da nova sessão
+    if (onSessionCreate) {
+      onSessionCreate(newSessionId);
+    }
+    return newSessionId;
+  };
 
   useEffect(() => {
-    if (propSessionId && propSessionId !== currentSessionId) {
+    if (propSessionId === undefined) {
+      // Quando propSessionId for undefined, significa que é uma nova consulta
+      createNewSession();
+    } else if (propSessionId && propSessionId !== currentSessionId) {
+      // Mudança para uma sessão existente
       setCurrentSessionId(propSessionId);
       setMessages([]);
+      loadChatHistory(propSessionId);
     }
-    loadChatHistory();
-  }, [propSessionId, currentSessionId]);
+  }, [propSessionId]);
 
-  const loadChatHistory = async () => {
+  const loadChatHistory = async (sessionId?: string) => {
+    const targetSessionId = sessionId || currentSessionId;
+    if (!targetSessionId) return;
+    
     try {
       const { data, error } = await supabase
         .from('n8n_chat_histories')
         .select('*')
-        .eq('session_id', currentSessionId)
+        .eq('session_id', targetSessionId)
         .order('id', { ascending: true });
 
       if (error) throw error;
@@ -61,6 +77,8 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
   };
 
   const saveMessage = async (message: Message) => {
+    if (!currentSessionId) return;
+    
     try {
       await supabase
         .from('n8n_chat_histories')
@@ -78,7 +96,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !currentSessionId) return;
     
     const message: Message = {
       id: Date.now().toString(),
@@ -86,11 +104,6 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       type: "human",
       timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     };
-    
-    // Se é uma nova sessão, notificar o componente pai
-    if (currentSessionId.startsWith('session_') && onSessionCreate) {
-      onSessionCreate(currentSessionId);
-    }
     
     setMessages(prev => [...prev, message]);
     await saveMessage(message);

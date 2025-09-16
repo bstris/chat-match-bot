@@ -1,10 +1,10 @@
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatArea } from "@/components/ChatArea";
 import { CandidateResults } from "@/components/CandidateResults";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const Index = () => {
-  const [selectedSessionId, setSelectedSessionId] = useState<string>();
+  const [selectedSessionId, setSelectedSessionId] = useState<string | undefined>(undefined);
   
   return (
     <div className="min-h-screen bg-background">
@@ -21,12 +21,16 @@ const Index = () => {
       
       <main className="flex h-[calc(100vh-85px)] p-6 gap-6">
         <ChatSidebar 
-          onSelectChat={setSelectedSessionId}
+          onSelectChat={(sessionId) => {
+            setSelectedSessionId(sessionId); // undefined para nova sessão, string para sessão existente
+          }}
           currentSessionId={selectedSessionId}
         />
         <ChatArea 
           sessionId={selectedSessionId}
-          onSessionCreate={setSelectedSessionId}
+          onSessionCreate={(sessionId) => {
+            setSelectedSessionId(sessionId); // Atualiza quando uma nova sessão é criada
+          }}
         />
         <CandidateResults />
       </main>
