@@ -120,14 +120,14 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       const data = await response.json();
       console.log('Resposta do webhook:', data);
       
-      // Tentar diferentes formatos de resposta do webhook
+      // Tratar formato específico do N8N: {"text": "..."}
       let iaContent = '';
-      if (data.response) {
+      if (data.text) {
+        iaContent = data.text;
+      } else if (data.response) {
         iaContent = data.response;
       } else if (data.message) {
         iaContent = data.message;
-      } else if (data.text) {
-        iaContent = data.text;
       } else if (data.content) {
         iaContent = data.content;
       } else if (typeof data === 'string') {
@@ -161,9 +161,10 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
   };
 
   return (
-    <Card className="flex-1 h-full bg-card border-border shadow-card rounded-xl flex flex-col">
-      <div className="p-4 border-b border-border">
-        <h2 className="text-lg font-semibold text-foreground mb-2">
+    <div className="flex-1 h-full bg-card border border-border rounded-2xl flex flex-col overflow-hidden" 
+         style={{ boxShadow: 'var(--shadow-card)' }}>
+      <div className="p-6 border-b border-border bg-card">
+        <h2 className="text-xl font-semibold text-foreground mb-1">
           Chat de Busca de Candidatos
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -171,36 +172,40 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
         </p>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
+      <ScrollArea className="flex-1 p-6">
+        <div className="space-y-6">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex items-start space-x-3 ${
-                message.type === 'human' ? 'flex-row-reverse space-x-reverse' : ''
+              className={`flex items-start gap-3 ${
+                message.type === 'human' ? 'flex-row-reverse' : ''
               }`}
             >
-              <div className={`p-2 rounded-full ${
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                 message.type === 'human' 
-                  ? 'bg-gradient-primary' 
-                  : 'bg-secondary'
+                  ? 'bg-primary' 
+                  : 'bg-muted'
               }`}>
                 {message.type === 'human' ? (
                   <User className="w-4 h-4 text-primary-foreground" />
                 ) : (
-                  <Bot className="w-4 h-4 text-foreground" />
+                  <Bot className="w-4 h-4 text-muted-foreground" />
                 )}
               </div>
               
-              <div className={`flex-1 max-w-[70%] ${
-                message.type === 'human' ? 'text-right' : ''
+              <div className={`flex-1 max-w-[75%] ${
+                message.type === 'human' ? 'flex justify-end' : ''
               }`}>
-                <Card className={`p-3 shadow-card rounded-lg ${
+                <div className={`px-4 py-3 rounded-2xl ${
                   message.type === 'human'
-                    ? 'bg-gradient-primary text-primary-foreground ml-auto'
-                    : 'bg-gradient-card'
-                }`}>
-                  <p className="text-sm">{message.content}</p>
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-foreground'
+                }`} style={{ 
+                  boxShadow: message.type === 'human' 
+                    ? 'var(--shadow-minimal)' 
+                    : 'var(--shadow-minimal)' 
+                }}>
+                  <p className="text-sm leading-relaxed">{message.content}</p>
                   <p className={`text-xs mt-2 ${
                     message.type === 'human'
                       ? 'text-primary-foreground/70'
@@ -208,30 +213,31 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
                   }`}>
                     {message.timestamp}
                   </p>
-                </Card>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t border-border">
-        <div className="flex space-x-2">
+      <div className="p-6 border-t border-border bg-card">
+        <div className="flex gap-3">
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Descreva o perfil de candidato que você está procurando..."
-            className="flex-1 bg-input border-border"
+            placeholder="Descreva o perfil de candidato..."
+            className="flex-1 bg-input border-border rounded-2xl px-4 py-3 focus:ring-1 focus:ring-primary"
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
           />
           <Button 
             onClick={handleSendMessage}
-            className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
+            className="bg-primary hover:bg-primary/90 rounded-2xl px-6 transition-all duration-200"
+            style={{ boxShadow: 'var(--shadow-minimal)' }}
           >
             <Send className="w-4 h-4" />
           </Button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };

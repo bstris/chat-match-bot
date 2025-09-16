@@ -8,18 +8,18 @@ const Index = () => {
   
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-3">
-          <h1 className="text-xl font-bold text-foreground">
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-4">
+          <h1 className="text-2xl font-semibold text-foreground">
             Sistema de Seleção de Candidatos
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-1">
             Conectado via webhook N8N • Chat inteligente para matching de candidatos
           </p>
         </div>
       </header>
       
-      <main className="flex h-[calc(100vh-80px)] p-4 gap-4">
+      <main className="flex h-[calc(100vh-85px)] p-6 gap-6">
         <ChatSidebar 
           onSelectChat={setSelectedSessionId}
           currentSessionId={selectedSessionId}

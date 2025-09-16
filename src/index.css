@@ -8,40 +8,47 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 46 8% 89%;
-    --foreground: 210 11% 15%;
+    /* Apple-style minimal design system */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 13%;
 
     --card: 0 0% 100%;
-    --card-foreground: 210 11% 15%;
+    --card-foreground: 0 0% 13%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 11% 15%;
+    --popover-foreground: 0 0% 13%;
 
-    --primary: 217 91% 60%;
+    --primary: 212 100% 48%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 11% 71%;
-    --secondary-foreground: 210 11% 15%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 13%;
 
-    --muted: 210 11% 82%;
-    --muted-foreground: 210 11% 46%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 217 91% 60%;
+    --accent: 212 100% 48%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 11% 82%;
-    --input: 0 0% 100%;
-    --ring: 217 91% 60%;
+    --border: 0 0% 90%;
+    --input: 0 0% 98%;
+    --ring: 212 100% 48%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 98%));
-    --shadow-glow: 0 4px 20px hsl(217 91% 60% / 0.15);
-    --shadow-card: 0 2px 10px hsl(210 11% 15% / 0.1);
+    /* Apple-style gradients and shadows */
+    --gradient-primary: linear-gradient(135deg, hsl(212 100% 48%), hsl(212 100% 56%));
+    --gradient-user: linear-gradient(135deg, hsl(212 100% 48%), hsl(212 100% 52%));
+    --gradient-bot: linear-gradient(135deg, hsl(0 0% 96%), hsl(0 0% 94%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 99%));
+    
+    --shadow-minimal: 0 1px 3px hsl(0 0% 0% / 0.06), 0 1px 2px hsl(0 0% 0% / 0.1);
+    --shadow-card: 0 4px 25px hsl(0 0% 0% / 0.08);
+    --shadow-elevated: 0 10px 40px hsl(0 0% 0% / 0.12);
+    --shadow-glow: 0 0 0 1px hsl(212 100% 48% / 0.1);
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 
