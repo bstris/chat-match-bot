@@ -98,6 +98,8 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
 
     // Chamar webhook N8N
     try {
+      console.log('Enviando para webhook:', { message: newMessage, sessionId: currentSessionId });
+      
       const response = await fetch('https://endy-ai.up.railway.app/webhook/95dd61c8-750c-49e7-b9a0-05afa225838a', {
         method: 'POST',
         headers: {
@@ -109,11 +111,34 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
         })
       });
 
+      console.log('Status da resposta:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
       const data = await response.json();
+      console.log('Resposta do webhook:', data);
+      
+      // Tentar diferentes formatos de resposta do webhook
+      let iaContent = '';
+      if (data.response) {
+        iaContent = data.response;
+      } else if (data.message) {
+        iaContent = data.message;
+      } else if (data.text) {
+        iaContent = data.text;
+      } else if (data.content) {
+        iaContent = data.content;
+      } else if (typeof data === 'string') {
+        iaContent = data;
+      } else {
+        iaContent = JSON.stringify(data);
+      }
       
       const iaMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.response || "Resposta recebida do sistema de IA",
+        content: iaContent || "Resposta recebida do sistema de IA",
         type: "ia",
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       };
@@ -125,7 +150,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.",
+        content: `Erro ao conectar com o sistema de IA: ${error.message}`,
         type: "ia",
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       };
