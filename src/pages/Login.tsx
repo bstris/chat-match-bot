@@ -8,61 +8,68 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
-  const [loginData, setLoginData] = useState({ login: "", senha: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      console.log('Tentando login com:', { login: loginData.login, senha: loginData.senha });
-      
-      // Usar uma query que trate quebras de linha na senha
-      const { data, error } = await supabase
-        .from('login' as any)
-        .select('*')
-        .eq('login', loginData.login.trim())
-        .like('senha', `${loginData.senha.trim()}%`)
-        .maybeSingle();
-
-      console.log('Resultado da consulta:', { data, error });
-
-      if (error) {
-        console.error('Erro do Supabase:', error);
-        toast({
-          title: "Erro de conexão",
-          description: "Erro ao conectar com o banco de dados",
-          variant: "destructive",
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`
+          }
         });
-        return;
-      }
 
-      if (!data) {
-        console.log('Nenhum dados encontrado para as credenciais fornecidas');
+        if (error) {
+          console.error('Erro no cadastro:', error);
+          toast({
+            title: "Erro no cadastro",
+            description: error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
         toast({
-          title: "Erro de autenticação",
-          description: "Credenciais inválidas",
-          variant: "destructive",
+          title: "Cadastro realizado",
+          description: "Verifique seu email para confirmar a conta",
         });
-        return;
-      }
+        setIsSignUp(false);
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
 
-      // Salvar autenticação no localStorage
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userLogin', loginData.login);
-      
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo ao sistema",
-      });
-      
-      navigate('/');
+        if (error) {
+          console.error('Erro no login:', error);
+          toast({
+            title: "Erro de autenticação",
+            description: error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (data.user) {
+          toast({
+            title: "Login realizado com sucesso",
+            description: "Bem-vindo ao sistema",
+          });
+          navigate('/');
+        }
+      }
     } catch (error) {
-      console.error('Erro no login:', error);
+      console.error('Erro:', error);
       toast({
         title: "Erro",
         description: "Erro interno do sistema",
@@ -79,39 +86,42 @@ const Login = () => {
         <div className="bg-card border border-border rounded-xl shadow-soft p-8">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-semibold text-foreground mb-2">
-              Bem-vindo
+              {isSignUp ? "Criar conta" : "Bem-vindo"}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Entre com suas credenciais para acessar o sistema
+              {isSignUp 
+                ? "Crie sua conta para acessar o sistema" 
+                : "Entre com suas credenciais para acessar o sistema"
+              }
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="login" className="text-sm font-medium text-foreground">
-                Login
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                Email
               </Label>
               <Input
-                id="login"
-                type="text"
-                value={loginData.login}
-                onChange={(e) => setLoginData(prev => ({ ...prev, login: e.target.value }))}
-                placeholder="Digite seu login"
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Digite seu email"
                 required
                 className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="senha" className="text-sm font-medium text-foreground">
+              <Label htmlFor="password" className="text-sm font-medium text-foreground">
                 Senha
               </Label>
               <div className="relative">
                 <Input
-                  id="senha"
+                  id="password"
                   type={showPassword ? "text" : "password"}
-                  value={loginData.senha}
-                  onChange={(e) => setLoginData(prev => ({ ...prev, senha: e.target.value }))}
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="Digite sua senha"
                   required
                   className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary pr-10"
@@ -135,14 +145,20 @@ const Login = () => {
               disabled={isLoading}
               className="w-full h-11 rounded-lg font-medium transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {isLoading ? "Entrando..." : "Entrar"}
+              {isLoading 
+                ? (isSignUp ? "Criando conta..." : "Entrando...") 
+                : (isSignUp ? "Criar conta" : "Entrar")
+              }
             </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-xs text-muted-foreground">
-              Credenciais padrão: root / rootn
-            </p>
+            <button
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm text-primary hover:underline"
+            >
+              {isSignUp ? "Já tem uma conta? Fazer login" : "Não tem uma conta? Cadastre-se"}
+            </button>
           </div>
         </div>
       </div>

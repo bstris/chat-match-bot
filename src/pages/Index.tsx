@@ -2,6 +2,7 @@ import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatArea } from "@/components/ChatArea";
 import { CandidateResults } from "@/components/CandidateResults";
 import { useState, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [selectedSessionId, setSelectedSessionId] = useState<string | undefined>(undefined);
@@ -19,10 +20,9 @@ const Index = () => {
             </p>
           </div>
           <button
-            onClick={() => {
-              localStorage.removeItem('isAuthenticated');
-              localStorage.removeItem('userLogin');
-              window.location.href = '/login';
+            onClick={async () => {
+              await supabase.auth.signOut();
+              // O redirect será feito automaticamente pelo ProtectedRoute
             }}
             className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
           >
