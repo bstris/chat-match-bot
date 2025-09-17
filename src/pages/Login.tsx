@@ -21,11 +21,12 @@ const Login = () => {
     try {
       console.log('Tentando login com:', { login: loginData.login, senha: loginData.senha });
       
+      // Usar uma query que trate quebras de linha na senha
       const { data, error } = await supabase
         .from('login' as any)
         .select('*')
-        .eq('login', loginData.login)
-        .eq('senha', loginData.senha)
+        .eq('login', loginData.login.trim())
+        .like('senha', `${loginData.senha.trim()}%`)
         .maybeSingle();
 
       console.log('Resultado da consulta:', { data, error });
