@@ -133,20 +133,13 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       const data = await response.json();
       console.log('Resposta do webhook:', data);
       
-      // Tratar formato específico do N8N: {"text": "..."}
+      // Tratar apenas o formato específico do N8N: {"text": "..."}
       let iaContent = '';
-      if (data.text) {
+      if (data && typeof data === 'object' && data.text) {
         iaContent = data.text;
-      } else if (data.response) {
-        iaContent = data.response;
-      } else if (data.message) {
-        iaContent = data.message;
-      } else if (data.content) {
-        iaContent = data.content;
-      } else if (typeof data === 'string') {
-        iaContent = data;
       } else {
-        iaContent = JSON.stringify(data);
+        console.warn('Formato de resposta não esperado:', data);
+        iaContent = "Erro: Formato de resposta inválido do sistema de IA";
       }
       
       const iaMessage: Message = {
