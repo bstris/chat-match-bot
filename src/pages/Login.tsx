@@ -17,6 +17,8 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      console.log('Tentando login com:', { login: loginData.login, senha: loginData.senha });
+      
       const { data, error } = await supabase
         .from('login' as any)
         .select('*')
@@ -24,7 +26,20 @@ const Login = () => {
         .eq('senha', loginData.senha)
         .maybeSingle();
 
-      if (error || !data) {
+      console.log('Resultado da consulta:', { data, error });
+
+      if (error) {
+        console.error('Erro do Supabase:', error);
+        toast({
+          title: "Erro de conexão",
+          description: "Erro ao conectar com o banco de dados",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!data) {
+        console.log('Nenhum dados encontrado para as credenciais fornecidas');
         toast({
           title: "Erro de autenticação",
           description: "Credenciais inválidas",
