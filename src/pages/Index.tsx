@@ -1,11 +1,40 @@
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatArea } from "@/components/ChatArea";
 import { CandidateResults } from "@/components/CandidateResults";
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [selectedSessionId, setSelectedSessionId] = useState<string | undefined>(undefined);
+  const [showResults, setShowResults] = useState(false);
+  const [userName, setUserName] = useState<string>("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadUserName();
+  }, []);
+
+  const loadUserName = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles' as any)
+          .select('nome')
+          .eq('id', user.id)
+          .single();
+        
+        if (data) {
+          setUserName((data as any).nome);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar nome do usuário:', error);
+    }
+  };
   
   return (
     <div className="min-h-screen bg-background">
@@ -19,32 +48,50 @@ const Index = () => {
               Conectado via webhook N8N • Chat inteligente para matching de candidatos
             </p>
           </div>
-          <button
-            onClick={async () => {
-              await supabase.auth.signOut();
-              // O redirect será feito automaticamente pelo ProtectedRoute
-            }}
-            className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
-          >
-            Sair
-          </button>
+          <div className="flex items-center gap-4">
+            {userName && (
+              <span className="text-sm text-foreground">
+                Olá, <span className="font-medium">{userName}</span>
+              </span>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => navigate('/favorites')}
+              className="gap-2"
+            >
+              <Heart className="w-4 h-4" />
+              Meus Favoritos
+            </Button>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+              }}
+              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
+            >
+              Sair
+            </button>
+          </div>
         </div>
       </header>
       
       <main className="flex h-[calc(100vh-85px)] p-6 gap-6">
         <ChatSidebar 
           onSelectChat={(sessionId) => {
-            setSelectedSessionId(sessionId); // undefined para nova sessão, string para sessão existente
+            setSelectedSessionId(sessionId);
+            setShowResults(!!sessionId);
           }}
           currentSessionId={selectedSessionId}
         />
-        <ChatArea 
-          sessionId={selectedSessionId}
-          onSessionCreate={(sessionId) => {
-            setSelectedSessionId(sessionId); // Atualiza quando uma nova sessão é criada
-          }}
-        />
-        <CandidateResults />
+        <div className={`${showResults ? 'flex-1' : 'flex-[2]'} transition-all duration-300`}>
+          <ChatArea 
+            sessionId={selectedSessionId}
+            onSessionCreate={(sessionId) => {
+              setSelectedSessionId(sessionId);
+              setShowResults(true);
+            }}
+          />
+        </div>
+        {showResults && <CandidateResults />}
       </main>
     </div>
   );
