@@ -1,6 +1,8 @@
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatArea } from "@/components/ChatArea";
 import { CandidateResults } from "@/components/CandidateResults";
+import { FavoriteVagaSelector } from "@/components/FavoriteVagaSelector";
+import { useFavorites } from "@/hooks/useFavorites";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ const Index = () => {
   const [showResults, setShowResults] = useState(false);
   const [userName, setUserName] = useState<string>("");
   const navigate = useNavigate();
+  const { showVagaDialog, setShowVagaDialog, saveToSupabase } = useFavorites();
 
   useEffect(() => {
     loadUserName();
@@ -101,6 +104,12 @@ const Index = () => {
         </div>
         {showResults && <CandidateResults />}
       </main>
+
+      <FavoriteVagaSelector
+        open={showVagaDialog}
+        onOpenChange={setShowVagaDialog}
+        onVagaSelected={saveToSupabase}
+      />
     </div>
   );
 };
