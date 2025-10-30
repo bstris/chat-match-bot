@@ -113,7 +113,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
     try {
       console.log('Enviando para webhook:', { message: newMessage, sessionId: currentSessionId });
       
-      const response = await fetch('https://engeform.up.railway.app/webhook-test/f6828a64-e683-4e53-a1b3-f4b149caf760', {
+      const response = await fetch('https://engeform.up.railway.app/webhook/f6828a64-e683-4e53-a1b3-f4b149caf760', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
