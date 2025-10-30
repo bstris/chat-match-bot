@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Favorites from "./pages/Favorites";
+import MecData from "./pages/MecData";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,11 @@ const App = () => (
           <Route path="/favorites" element={
             <ProtectedRoute>
               <Favorites />
+            </ProtectedRoute>
+          } />
+          <Route path="/mec-data" element={
+            <ProtectedRoute>
+              <MecData />
             </ProtectedRoute>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

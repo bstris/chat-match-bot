@@ -4,7 +4,7 @@ import { CandidateResults } from "@/components/CandidateResults";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import { Heart, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
@@ -23,12 +23,12 @@ const Index = () => {
       if (user) {
         const { data } = await supabase
           .from('profiles' as any)
-          .select('nome')
+          .select('primeiro_nome')
           .eq('id', user.id)
           .single();
         
         if (data) {
-          setUserName((data as any).nome);
+          setUserName((data as any).primeiro_nome);
         }
       }
     } catch (error) {
@@ -61,6 +61,14 @@ const Index = () => {
             >
               <Heart className="w-4 h-4" />
               Meus Favoritos
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/mec-data')}
+              className="gap-2"
+            >
+              <GraduationCap className="w-4 h-4" />
+              Dados MEC
             </Button>
             <button
               onClick={async () => {
