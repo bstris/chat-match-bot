@@ -6,6 +6,8 @@ import { Send, Bot, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
+import { AICandidateCard } from "./AICandidateCard";
+import { useFavorites } from "@/hooks/useFavorites";
 
 interface Message {
   id: string;
@@ -24,6 +26,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
   const [newMessage, setNewMessage] = useState("");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { addFavorite, removeFavorite, isFavorited } = useFavorites();
 
   // Função para criar uma nova sessão
   const createNewSession = () => {
@@ -171,8 +174,61 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
     }
   };
 
+  // Função para detectar múltiplos candidatos na mensagem
+  const parseMultipleCandidates = (content: string): string[] => {
+    // Detectar se há múltiplos candidatos separados por linhas vazias ou marcadores
+    const candidatePattern = /(?:^|\n)(?:\*\*Nome:\*\*|\*\*Candidato)/gm;
+    const matches = content.match(candidatePattern);
+    
+    if (!matches || matches.length <= 1) {
+      return []; // Mensagem única, não tem múltiplos candidatos
+    }
+
+    // Dividir o conteúdo em blocos de candidatos
+    const parts = content.split(/(?=\n\*\*(?:Nome|Candidato))/);
+    return parts.filter(part => part.trim().length > 0);
+  };
+
+  // Função para extrair informações do candidato
+  const extractCandidateInfo = (content: string) => {
+    const nomeMatch = content.match(/\*\*Nome:\*\*\s*(.+)/);
+    const emailMatch = content.match(/\*\*Email:\*\*\s*(.+)/);
+    const telefoneMatch = content.match(/\*\*Telefone:\*\*\s*(.+)/);
+    const linkMatch = content.match(/\[([^\]]+)\]\(([^)]+)\)/);
+    const resumoMatch = content.match(/\*\*Resumo:\*\*\s*(.+)/);
+
+    return {
+      nome: nomeMatch?.[1]?.trim() || "Candidato",
+      email: emailMatch?.[1]?.trim() || "",
+      telefone: telefoneMatch?.[1]?.trim() || "",
+      link: linkMatch?.[2] || "",
+      resumo: resumoMatch?.[1]?.trim() || "",
+    };
+  };
+
+  // Função de favoritar candidato
+  const handleFavoriteCandidate = (messageId: string, candidateIndex: number, isFav: boolean) => {
+    const message = messages.find(m => m.id === messageId);
+    if (!message || !currentSessionId) return;
+
+    const candidates = parseMultipleCandidates(message.content);
+    const candidateContent = candidates[candidateIndex] || message.content;
+    const candidateInfo = extractCandidateInfo(candidateContent);
+
+    if (isFav) {
+      addFavorite({
+        id: `${messageId}_${candidateIndex}`,
+        ...candidateInfo,
+        sessionId: currentSessionId,
+        candidateIndex,
+      });
+    } else {
+      removeFavorite(currentSessionId, candidateIndex);
+    }
+  };
+
   return (
-    <div className="flex-1 h-full bg-card border border-border rounded-2xl flex flex-col overflow-hidden" 
+    <div className="flex-1 h-full bg-card border border-border rounded-2xl flex flex-col overflow-hidden"
          style={{ boxShadow: 'var(--shadow-card)' }}>
       <div className="p-6 border-b border-border bg-card">
         <h2 className="text-xl font-semibold text-foreground mb-1">
@@ -207,26 +263,45 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
               <div className={`flex-1 max-w-[75%] ${
                 message.type === 'human' ? 'flex justify-end' : ''
               }`}>
-                <div className={`px-4 py-3 rounded-2xl ${
-                  message.type === 'human'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-foreground'
-                }`} style={{ 
-                  boxShadow: message.type === 'human' 
-                    ? 'var(--shadow-minimal)' 
-                    : 'var(--shadow-minimal)' 
-                }}>
-                  <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                {message.type === 'ai' && parseMultipleCandidates(message.content).length > 1 ? (
+                  // Renderizar múltiplos candidatos como cards
+                  <div className="space-y-4 w-full">
+                    {parseMultipleCandidates(message.content).map((candidateContent, index) => (
+                      <AICandidateCard
+                        key={`${message.id}_${index}`}
+                        content={candidateContent}
+                        candidateIndex={index}
+                        onFavorite={(idx, isFav) => handleFavoriteCandidate(message.id, idx, isFav)}
+                        isFavorited={currentSessionId ? isFavorited(currentSessionId, index) : false}
+                      />
+                    ))}
+                    <p className="text-xs text-muted-foreground mt-4">
+                      {message.timestamp}
+                    </p>
                   </div>
-                  <p className={`text-xs mt-2 ${
+                ) : (
+                  // Renderizar mensagem única
+                  <div className={`px-4 py-3 rounded-2xl ${
                     message.type === 'human'
-                      ? 'text-primary-foreground/70'
-                      : 'text-muted-foreground'
-                  }`}>
-                    {message.timestamp}
-                  </p>
-                </div>
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-foreground'
+                  }`} style={{ 
+                    boxShadow: message.type === 'human' 
+                      ? 'var(--shadow-minimal)' 
+                      : 'var(--shadow-minimal)' 
+                  }}>
+                    <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert [&_a]:underline [&_a]:text-primary [&_a:hover]:text-primary/80">
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
+                    <p className={`text-xs mt-2 ${
+                      message.type === 'human'
+                        ? 'text-primary-foreground/70'
+                        : 'text-muted-foreground'
+                    }`}>
+                      {message.timestamp}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
