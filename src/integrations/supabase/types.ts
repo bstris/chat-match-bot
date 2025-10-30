@@ -14,63 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      base_consolare: {
-        Row: {
-          documento: string
-          id: number
-        }
-        Insert: {
-          documento: string
-          id?: number
-        }
-        Update: {
-          documento?: string
-          id?: number
-        }
-        Relationships: []
-      }
-      candidatos_embeddings: {
-        Row: {
-          candidato_id: number
-          conteudo: string
-          criado_em: string | null
-          embedding: string | null
-          id: number
-          tipo_dado: string
-        }
-        Insert: {
-          candidato_id: number
-          conteudo: string
-          criado_em?: string | null
-          embedding?: string | null
-          id?: number
-          tipo_dado: string
-        }
-        Update: {
-          candidato_id?: number
-          conteudo?: string
-          criado_em?: string | null
-          embedding?: string | null
-          id?: number
-          tipo_dado?: string
-        }
-        Relationships: []
-      }
-      consolare: {
+      candidatos: {
         Row: {
           content: string | null
+          embedding: string | null
           id: number
           metadata: Json | null
         }
         Insert: {
           content?: string | null
-          id?: number
+          embedding?: string | null
+          id?: never
           metadata?: Json | null
         }
         Update: {
           content?: string | null
-          id?: number
+          embedding?: string | null
+          id?: never
           metadata?: Json | null
+        }
+        Relationships: []
+      }
+      chat_favorites: {
+        Row: {
+          candidate_id: string
+          candidate_index: number
+          created_at: string
+          email: string | null
+          id: string
+          link: string | null
+          nome: string
+          resumo: string | null
+          session_id: string
+          telefone: string | null
+          user_id: string
+        }
+        Insert: {
+          candidate_id: string
+          candidate_index: number
+          created_at?: string
+          email?: string | null
+          id?: string
+          link?: string | null
+          nome: string
+          resumo?: string | null
+          session_id: string
+          telefone?: string | null
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string
+          candidate_index?: number
+          created_at?: string
+          email?: string | null
+          id?: string
+          link?: string | null
+          nome?: string
+          resumo?: string | null
+          session_id?: string
+          telefone?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -95,129 +98,164 @@ export type Database = {
         }
         Relationships: []
       }
-      GUPPY: {
+      documents_copy: {
         Row: {
-          candidatoId: number
-          company: string | null
-          course: string | null
-          criado_em_candidato: string | null
-          criado_em_education: string | null
-          criado_em_experience: string | null
-          criado_em_language: string | null
-          degree: string | null
-          description: string | null
-          end_education: string | null
-          end_experience: string | null
-          id_candidato: number
-          id_education: number | null
-          id_experience: number | null
-          id_language: number | null
-          institution: string | null
-          language: string | null
-          level: string | null
-          nome: string | null
-          start_education: string | null
-          start_experience: string | null
-          status: string | null
-          title: string | null
-          zipCode: string | null
-        }
-        Insert: {
-          candidatoId: number
-          company?: string | null
-          course?: string | null
-          criado_em_candidato?: string | null
-          criado_em_education?: string | null
-          criado_em_experience?: string | null
-          criado_em_language?: string | null
-          degree?: string | null
-          description?: string | null
-          end_education?: string | null
-          end_experience?: string | null
-          id_candidato?: number
-          id_education?: number | null
-          id_experience?: number | null
-          id_language?: number | null
-          institution?: string | null
-          language?: string | null
-          level?: string | null
-          nome?: string | null
-          start_education?: string | null
-          start_experience?: string | null
-          status?: string | null
-          title?: string | null
-          zipCode?: string | null
-        }
-        Update: {
-          candidatoId?: number
-          company?: string | null
-          course?: string | null
-          criado_em_candidato?: string | null
-          criado_em_education?: string | null
-          criado_em_experience?: string | null
-          criado_em_language?: string | null
-          degree?: string | null
-          description?: string | null
-          end_education?: string | null
-          end_experience?: string | null
-          id_candidato?: number
-          id_education?: number | null
-          id_experience?: number | null
-          id_language?: number | null
-          institution?: string | null
-          language?: string | null
-          level?: string | null
-          nome?: string | null
-          start_education?: string | null
-          start_experience?: string | null
-          status?: string | null
-          title?: string | null
-          zipCode?: string | null
-        }
-        Relationships: []
-      }
-      guppy2: {
-        Row: {
-          candidatoID: number
-          NOME: string | null
-        }
-        Insert: {
-          candidatoID: number
-          NOME?: string | null
-        }
-        Update: {
-          candidatoID?: number
-          NOME?: string | null
-        }
-        Relationships: []
-      }
-      information_clients: {
-        Row: {
-          client: string | null
-          created_at: string
-          date: string | null
-          destination: string | null
+          content: string | null
+          embedding: string | null
           id: number
-          origin: string | null
-          phone: string | null
+          metadata: Json | null
         }
         Insert: {
-          client?: string | null
-          created_at?: string
-          date?: string | null
-          destination?: string | null
+          content?: string | null
+          embedding?: string | null
           id?: number
-          origin?: string | null
-          phone?: string | null
+          metadata?: Json | null
         }
         Update: {
-          client?: string | null
-          created_at?: string
-          date?: string | null
-          destination?: string | null
+          content?: string | null
+          embedding?: string | null
           id?: number
-          origin?: string | null
-          phone?: string | null
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
+      documents_index: {
+        Row: {
+          content: string | null
+          embedding: string | null
+          id: number
+          metadata: Json | null
+        }
+        Insert: {
+          content?: string | null
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
+        }
+        Update: {
+          content?: string | null
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
+      favoritos: {
+        Row: {
+          candidato_id: number
+          created_at: string
+          id: string
+          recrutador_id: string
+          vaga_id: string
+        }
+        Insert: {
+          candidato_id: number
+          created_at?: string
+          id?: string
+          recrutador_id: string
+          vaga_id: string
+        }
+        Update: {
+          candidato_id?: number
+          created_at?: string
+          id?: string
+          recrutador_id?: string
+          vaga_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favoritos_vaga_id_fkey"
+            columns: ["vaga_id"]
+            isOneToOne: false
+            referencedRelation: "vagas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      filtros_personalizados: {
+        Row: {
+          created_at: string
+          criterios: Json
+          id: string
+          nome: string
+          recrutador_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criterios: Json
+          id?: string
+          nome: string
+          recrutador_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criterios?: Json
+          id?: string
+          nome?: string
+          recrutador_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      login: {
+        Row: {
+          id: number
+          login: string
+          senha: string | null
+        }
+        Insert: {
+          id?: number
+          login: string
+          senha?: string | null
+        }
+        Update: {
+          id?: number
+          login?: string
+          senha?: string | null
+        }
+        Relationships: []
+      }
+      mec_instituicoes: {
+        Row: {
+          categoria_administrativa: string | null
+          codigo_ies: string
+          created_at: string
+          cursos: Json | null
+          id: string
+          municipio: string | null
+          nome_ies: string
+          organizacao_academica: string | null
+          sigla_ies: string | null
+          uf: string | null
+          updated_at: string
+        }
+        Insert: {
+          categoria_administrativa?: string | null
+          codigo_ies: string
+          created_at?: string
+          cursos?: Json | null
+          id?: string
+          municipio?: string | null
+          nome_ies: string
+          organizacao_academica?: string | null
+          sigla_ies?: string | null
+          uf?: string | null
+          updated_at?: string
+        }
+        Update: {
+          categoria_administrativa?: string | null
+          codigo_ies?: string
+          created_at?: string
+          cursos?: Json | null
+          id?: string
+          municipio?: string | null
+          nome_ies?: string
+          organizacao_academica?: string | null
+          sigla_ies?: string | null
+          uf?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -239,76 +277,154 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          primeiro_nome: string | null
+          sobrenome: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          nome: string
+          primeiro_nome?: string | null
+          sobrenome?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          primeiro_nome?: string | null
+          sobrenome?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tabelateste: {
+        Row: {
+          content: string | null
+          embedding: string | null
+          id: number
+          metadata: Json | null
+        }
+        Insert: {
+          content?: string | null
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
+        }
+        Update: {
+          content?: string | null
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vagas: {
+        Row: {
+          created_at: string
+          id: string
+          recrutador_id: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recrutador_id: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recrutador_id?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      binary_quantize: {
-        Args: { "": string } | { "": unknown }
-        Returns: unknown
+      candidato_dinamico:
+        | {
+            Args: {
+              data_nascimento?: string
+              email?: string
+              endereco?: string
+              experiencias?: string
+              formacoes?: string
+              idiomas?: string
+              nome?: string
+              perfil?: string
+              qtd?: number
+              query_embedding: string
+              telefone?: string
+            }
+            Returns: {
+              content: string
+              id: number
+              metadata: Json
+              similaridade: number
+            }[]
+          }
+        | {
+            Args: {
+              data_nascimento?: string
+              email?: string
+              endereco?: string
+              experiencias?: string
+              formacoes?: string
+              nome?: string
+              perfil?: string
+              qtd?: number
+              query_embedding: string
+              telefone?: string
+            }
+            Returns: {
+              content: string
+              id: number
+              metadata: Json
+              similaridade: number
+            }[]
+          }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
-      buscar_candidato: {
-        Args:
-          | { qtd?: number; query_embedding: string }
-          | { qtd?: number; query_embedding: string; termo: string }
-        Returns: {
-          content: string
-          id: number
-        }[]
-      }
-      halfvec_avg: {
-        Args: { "": number[] }
-        Returns: unknown
-      }
-      halfvec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      halfvec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      halfvec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      hnsw_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_sparsevec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnswhandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflathandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      l2_norm: {
-        Args: { "": unknown } | { "": unknown }
-        Returns: number
-      }
-      l2_normalize: {
-        Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: string
-      }
+      is_approved: { Args: { _user_id: string }; Returns: boolean }
       match_documents: {
         Args: { filter?: Json; match_count?: number; query_embedding: string }
         Returns: {
@@ -318,45 +434,16 @@ export type Database = {
           similarity: number
         }[]
       }
-      sparsevec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      sparsevec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      sparsevec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      vector_avg: {
-        Args: { "": number[] }
-        Returns: string
-      }
-      vector_dims: {
-        Args: { "": string } | { "": unknown }
-        Returns: number
-      }
-      vector_norm: {
-        Args: { "": string }
-        Returns: number
-      }
-      vector_out: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      vector_send: {
-        Args: { "": string }
-        Returns: string
-      }
-      vector_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
+      supabase_candidato: {
+        Args: { qtd?: number; query_embedding: string }
+        Returns: {
+          content: string
+          id: number
+        }[]
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "recruiter"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -483,6 +570,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "recruiter"],
+    },
   },
 } as const

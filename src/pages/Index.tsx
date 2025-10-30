@@ -1,6 +1,7 @@
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatArea } from "@/components/ChatArea";
 import { CandidateResults } from "@/components/CandidateResults";
+import { BestMatchesPanel } from "@/components/BestMatchesPanel";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,7 @@ const Index = () => {
             }}
           />
         </div>
+        <BestMatchesPanel />
         {showResults && <CandidateResults />}
       </main>
     </div>
