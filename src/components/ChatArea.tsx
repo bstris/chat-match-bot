@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface Message {
   id: string;
   content: string;
-  type: 'human' | 'ia';
+  type: 'human' | 'ai';
   timestamp: string;
 }
 
@@ -145,7 +145,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       const iaMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: iaContent || "Resposta recebida do sistema de IA",
-        type: "ia",
+        type: "ai",
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       };
       
@@ -157,7 +157,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: `Erro ao conectar com o sistema de IA: ${error.message}`,
-        type: "ia",
+        type: "ai",
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       };
       
