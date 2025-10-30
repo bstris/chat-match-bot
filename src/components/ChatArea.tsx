@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   id: string;
@@ -22,6 +23,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Função para criar uma nova sessão
   const createNewSession = () => {
@@ -108,6 +110,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
     setMessages(prev => [...prev, message]);
     await saveMessage(message);
     setNewMessage("");
+    setIsLoading(true);
 
     // Chamar webhook N8N
     try {
@@ -163,6 +166,8 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       
       setMessages(prev => [...prev, errorMessage]);
       await saveMessage(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -211,7 +216,9 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
                     ? 'var(--shadow-minimal)' 
                     : 'var(--shadow-minimal)' 
                 }}>
-                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
                   <p className={`text-xs mt-2 ${
                     message.type === 'human'
                       ? 'text-primary-foreground/70'
@@ -223,6 +230,26 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
               </div>
             </div>
           ))}
+          
+          {isLoading && (
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-muted">
+                <Bot className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1 max-w-[75%]">
+                <div className="px-4 py-3 rounded-2xl bg-muted text-foreground" style={{ boxShadow: 'var(--shadow-minimal)' }}>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <span className="text-sm">Gerando resposta</span>
+                    <div className="flex gap-1">
+                      <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
+                      <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
+                      <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
 
