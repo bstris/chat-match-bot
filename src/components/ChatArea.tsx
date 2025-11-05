@@ -75,11 +75,32 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
           })
         }));
         
-        // Só atualizar se for diferente do estado atual (evita duplicatas)
+        // Merge inteligente: evita duplicatas comparando conteúdo e tipo
         setMessages(prev => {
-          const prevJson = JSON.stringify(prev.map(m => m.id));
-          const newJson = JSON.stringify(loadedMessages.map(m => m.id));
-          return prevJson === newJson ? prev : loadedMessages;
+          // Se não há mensagens anteriores, use as carregadas
+          if (prev.length === 0) return loadedMessages;
+          
+          // Verificar duplicatas por conteúdo e tipo (não por ID)
+          const merged = [...loadedMessages];
+          const existingContents = new Set(
+            loadedMessages.map(m => `${m.type}:${m.content}`)
+          );
+          
+          // Adicionar mensagens locais que ainda não foram salvas
+          prev.forEach(localMsg => {
+            const key = `${localMsg.type}:${localMsg.content}`;
+            if (!existingContents.has(key)) {
+              merged.push(localMsg);
+            }
+          });
+          
+          // Ordenar por timestamp se necessário
+          return merged.sort((a, b) => {
+            // IDs do banco são números, IDs locais são timestamps
+            const aId = isNaN(Number(a.id)) ? parseInt(a.id) : Number(a.id);
+            const bId = isNaN(Number(b.id)) ? parseInt(b.id) : Number(b.id);
+            return aId - bId;
+          });
         });
       }
     } catch (error) {
@@ -110,16 +131,18 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
     if (!newMessage.trim() || !currentSessionId) return;
     
     const message: Message = {
-      id: Date.now().toString(),
+      id: `temp_${Date.now()}`,
       content: newMessage,
       type: "human",
       timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     };
     
     setMessages(prev => [...prev, message]);
-    await saveMessage(message);
     setNewMessage("");
     setIsLoading(true);
+    
+    // Salvar e recarregar para evitar duplicatas
+    await saveMessage(message);
 
     // Chamar webhook N8N
     try {
@@ -155,7 +178,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       }
       
       const iaMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `temp_${Date.now() + 1}`,
         content: iaContent || "Resposta recebida do sistema de IA",
         type: "ai",
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -163,11 +186,14 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       
       setMessages(prev => [...prev, iaMessage]);
       await saveMessage(iaMessage);
+      
+      // Recarregar histórico após salvar para sincronizar IDs do banco
+      setTimeout(() => loadChatHistory(), 500);
     } catch (error) {
       console.error('Erro ao chamar webhook:', error);
       
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `temp_${Date.now() + 1}`,
         content: `Erro ao conectar com o sistema de IA: ${error.message}`,
         type: "ai",
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -175,6 +201,9 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       
       setMessages(prev => [...prev, errorMessage]);
       await saveMessage(errorMessage);
+      
+      // Recarregar histórico após salvar
+      setTimeout(() => loadChatHistory(), 500);
     } finally {
       setIsLoading(false);
     }
