@@ -35,7 +35,7 @@ export const CandidateResults = () => {
   const loadCandidatesFromDocuments = async () => {
     try {
       const { data, error } = await supabase
-        .from('GUPPY')
+        .from('GUPPY' as any)
         .select('*')
         .limit(10);
 

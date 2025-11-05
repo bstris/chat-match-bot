@@ -118,7 +118,7 @@ export default function Favorites() {
       }
 
       const { data, error } = await supabase
-        .from('GUPPY')
+        .from('GUPPY' as any)
         .select('*')
         .in('candidatoId', candidateIds);
 

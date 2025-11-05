@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Favorites from "./pages/Favorites";
+import ChatFavorites from "./pages/ChatFavorites";
 import MecData from "./pages/MecData";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -28,6 +29,11 @@ const App = () => (
           <Route path="/favorites" element={
             <ProtectedRoute>
               <Favorites />
+            </ProtectedRoute>
+          } />
+          <Route path="/chat-favorites" element={
+            <ProtectedRoute>
+              <ChatFavorites />
             </ProtectedRoute>
           } />
           <Route path="/mec-data" element={

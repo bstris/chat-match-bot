@@ -19,73 +19,94 @@ export const useFavorites = () => {
   const [pendingCandidate, setPendingCandidate] = useState<FavoriteCandidate | null>(null);
   const [showVagaDialog, setShowVagaDialog] = useState(false);
 
-  // Carregar favoritos do localStorage ao iniciar
+  // Carregar favoritos do Supabase ao iniciar
   useEffect(() => {
-    const stored = localStorage.getItem("chatFavorites");
-    if (stored) {
-      try {
-        setFavorites(JSON.parse(stored));
-      } catch (error) {
-        console.error("Erro ao carregar favoritos:", error);
-      }
-    }
+    loadFavorites();
   }, []);
 
-  // Salvar no localStorage sempre que mudar
-  useEffect(() => {
-    localStorage.setItem("chatFavorites", JSON.stringify(favorites));
-  }, [favorites]);
+  const loadFavorites = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('chat_favoritos' as any)
+        .select('*')
+        .eq('recrutador_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        const mappedFavorites: FavoriteCandidate[] = data.map((fav: any) => ({
+          id: fav.id,
+          nome: fav.nome,
+          email: fav.email || '',
+          telefone: fav.telefone || '',
+          link: fav.link || '',
+          resumo: fav.resumo,
+          sessionId: fav.session_id,
+          candidateIndex: fav.candidate_index
+        }));
+        setFavorites(mappedFavorites);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar favoritos:", error);
+    }
+  };
 
   const addFavorite = async (candidate: FavoriteCandidate, vagaId?: string) => {
     setLoading(true);
     try {
-      // Verificar se já existe
-      const exists = favorites.find(
-        (f) =>
-          f.sessionId === candidate.sessionId &&
-          f.candidateIndex === candidate.candidateIndex
-      );
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Você precisa estar logado para favoritar");
+        setLoading(false);
+        return;
+      }
 
-      if (exists) {
+      // Verificar se já existe no Supabase
+      const { data: existing } = await supabase
+        .from('chat_favoritos' as any)
+        .select('id')
+        .eq('recrutador_id', user.id)
+        .eq('session_id', candidate.sessionId)
+        .eq('candidate_index', candidate.candidateIndex)
+        .limit(1);
+
+      if (existing && existing.length > 0) {
         toast.info("Candidato já está nos favoritos");
         setLoading(false);
         return;
       }
 
-      // Adicionar localmente
-      setFavorites([...favorites, candidate]);
-
       // Se não tem vaga, abrir dialog para selecionar
       if (!vagaId) {
         setPendingCandidate(candidate);
         setShowVagaDialog(true);
-        toast.success("Candidato adicionado aos favoritos locais!");
         setLoading(false);
         return;
       }
 
-      // Salvar no Supabase se tem vaga
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.success("Candidato adicionado aos favoritos locais!");
-        setLoading(false);
-        return;
-      }
-
-      // Extrair candidato_id do campo id ou email/nome
-      const candidatoId = parseInt(candidate.id) || Math.floor(Math.random() * 1000000);
-
+      // Salvar no Supabase
       const { error } = await supabase
-        .from('favoritos' as any)
+        .from('chat_favoritos' as any)
         .insert({
-          candidato_id: candidatoId,
-          vaga_id: vagaId,
-          recrutador_id: user.id
+          recrutador_id: user.id,
+          session_id: candidate.sessionId,
+          candidate_index: candidate.candidateIndex,
+          nome: candidate.nome,
+          email: candidate.email,
+          telefone: candidate.telefone,
+          link: candidate.link,
+          resumo: candidate.resumo,
+          vaga_id: vagaId
         });
 
       if (error) throw error;
 
       toast.success("Candidato adicionado aos favoritos!");
+      await loadFavorites(); // Recarregar lista
     } catch (error) {
       console.error("Erro ao adicionar favorito:", error);
       toast.error("Erro ao adicionar favorito no banco");
@@ -105,14 +126,18 @@ export const useFavorites = () => {
         return;
       }
 
-      const candidatoId = parseInt(pendingCandidate.id) || Math.floor(Math.random() * 1000000);
-
       const { error } = await supabase
-        .from('favoritos' as any)
+        .from('chat_favoritos' as any)
         .insert({
-          candidato_id: candidatoId,
-          vaga_id: vagaId,
-          recrutador_id: user.id
+          recrutador_id: user.id,
+          session_id: pendingCandidate.sessionId,
+          candidate_index: pendingCandidate.candidateIndex,
+          nome: pendingCandidate.nome,
+          email: pendingCandidate.email,
+          telefone: pendingCandidate.telefone,
+          link: pendingCandidate.link,
+          resumo: pendingCandidate.resumo,
+          vaga_id: vagaId
         });
 
       if (error) throw error;
@@ -120,6 +145,7 @@ export const useFavorites = () => {
       toast.success("Candidato salvo em Meus Favoritos!");
       setPendingCandidate(null);
       setShowVagaDialog(false);
+      await loadFavorites(); // Recarregar lista
     } catch (error) {
       console.error("Erro ao salvar no Supabase:", error);
       toast.error("Erro ao salvar no banco");
@@ -128,14 +154,29 @@ export const useFavorites = () => {
     }
   };
 
-  const removeFavorite = (sessionId: string, candidateIndex: number) => {
-    setFavorites(
-      favorites.filter(
-        (f) =>
-          !(f.sessionId === sessionId && f.candidateIndex === candidateIndex)
-      )
-    );
-    toast.success("Candidato removido dos favoritos");
+  const removeFavorite = async (sessionId: string, candidateIndex: number) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Você precisa estar logado");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('chat_favoritos' as any)
+        .delete()
+        .eq('recrutador_id', user.id)
+        .eq('session_id', sessionId)
+        .eq('candidate_index', candidateIndex);
+
+      if (error) throw error;
+
+      toast.success("Candidato removido dos favoritos");
+      await loadFavorites(); // Recarregar lista
+    } catch (error) {
+      console.error("Erro ao remover favorito:", error);
+      toast.error("Erro ao remover favorito");
+    }
   };
 
   const isFavorited = (sessionId: string, candidateIndex: number) => {
