@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,7 @@ interface ChatHistory {
   session_id: string;
   title: string;
   timestamp: string;
+  rawTimestamp: string | number;
   preview: string;
 }
 
@@ -30,6 +32,7 @@ interface ChatSidebarProps {
 
 export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps) => {
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadChatHistory();
@@ -39,30 +42,35 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
     try {
       const { data, error } = await supabase
         .from('n8n_chat_histories')
-        .select('session_id, message')
+        .select('session_id, message, id')
         .order('id', { ascending: false });
 
       if (error) throw error;
 
       if (data) {
-        // Agrupar por session_id e pegar a primeira mensagem de cada sessão
+        // Agrupar por session_id e pegar a mensagem mais recente de cada sessão
         const sessions = new Map();
         data.forEach((record: any) => {
-          if (!sessions.has(record.session_id)) {
+          const existingSession = sessions.get(record.session_id);
+          const messageTimestamp = record.message?.timestamp || Date.now();
+          
+          // Atualizar apenas se for uma mensagem mais recente ou se não existir
+          if (!existingSession || new Date(messageTimestamp) > new Date(existingSession.rawTimestamp)) {
             const content = record.message?.content || '';
             const sessionNumber = record.session_id.split('_')[1] || Math.floor(Math.random() * 1000);
             sessions.set(record.session_id, {
               session_id: record.session_id,
               title: content.length > 30 ? content.substring(0, 30) + '...' : (content || `Consulta #${sessionNumber}`),
-              timestamp: new Date(record.message?.timestamp || Date.now()).toLocaleString('pt-BR'),
+              timestamp: new Date(messageTimestamp).toLocaleString('pt-BR'),
+              rawTimestamp: messageTimestamp,
               preview: content.length > 50 ? content.substring(0, 50) + '...' : (content || 'Nova consulta iniciada')
             });
           }
         });
 
-        // Ordenar por timestamp mais recente
+        // Ordenar por timestamp mais recente (usando rawTimestamp para precisão)
         const sortedSessions = Array.from(sessions.values())
-          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          .sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime())
           .slice(0, 15); // Mostrar últimas 15 conversas
 
         setChatHistory(sortedSessions);
@@ -88,8 +96,18 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
       if (currentSessionId === sessionId) {
         onSelectChat?.(undefined);
       }
+
+      toast({
+        title: "Histórico apagado",
+        description: "A conversa foi removida com sucesso.",
+      });
     } catch (error) {
       console.error('Erro ao deletar conversa:', error);
+      toast({
+        title: "Erro ao apagar",
+        description: "Não foi possível remover a conversa. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -104,8 +122,18 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
       
       setChatHistory([]);
       onSelectChat?.(undefined);
+
+      toast({
+        title: "Histórico limpo",
+        description: "Todas as conversas foram removidas com sucesso.",
+      });
     } catch (error) {
       console.error('Erro ao limpar histórico:', error);
+      toast({
+        title: "Erro ao limpar",
+        description: "Não foi possível limpar o histórico. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
   // Função para recarregar o histórico (chamada quando uma nova sessão é criada)
@@ -113,11 +141,11 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
     loadChatHistory();
   };
 
-  // Expor a função de refresh para o componente pai se necessário
+  // Atualizar histórico periodicamente apenas se houver sessão ativa
   useEffect(() => {
     const interval = setInterval(() => {
       loadChatHistory();
-    }, 2000); // Atualiza a cada 2 segundos
+    }, 3000); // Atualiza a cada 3 segundos
 
     return () => clearInterval(interval);
   }, []);
@@ -176,7 +204,7 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
           {chatHistory.map((chat) => (
             <div
               key={chat.session_id}
-              className={`group relative p-4 cursor-pointer transition-all duration-200 rounded-2xl ${
+              className={`group relative p-4 cursor-pointer transition-all duration-300 rounded-2xl animate-in fade-in slide-in-from-top-2 ${
                 currentSessionId === chat.session_id
                   ? 'bg-primary/5 ring-1 ring-primary/20'
                   : 'bg-muted/30 hover:bg-muted/50'
