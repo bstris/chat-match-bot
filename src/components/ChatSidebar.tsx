@@ -21,6 +21,7 @@ interface ChatHistory {
   title: string;
   timestamp: string;
   preview: string;
+  rawTimestamp: number; // Para ordenação precisa
 }
 
 interface ChatSidebarProps {
@@ -39,33 +40,58 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
     try {
       const { data, error } = await supabase
         .from('n8n_chat_histories')
-        .select('session_id, message')
-        .order('id', { ascending: false });
+        .select('session_id, message, id')
+        .order('id', { ascending: true }); // Pegar mensagens mais antigas primeiro
 
       if (error) throw error;
 
       if (data) {
-        // Agrupar por session_id e pegar a primeira mensagem de cada sessão
-        const sessions = new Map();
+        // Agrupar por session_id e pegar a PRIMEIRA mensagem de cada sessão (mais antiga)
+        const sessions = new Map<string, ChatHistory>();
+        
         data.forEach((record: any) => {
           if (!sessions.has(record.session_id)) {
             const content = record.message?.content || '';
-            const sessionNumber = record.session_id.split('_')[1] || Math.floor(Math.random() * 1000);
+            const sessionNumber = record.session_id.split('_')[1] || record.id;
+            
+            // Usar o timestamp da mensagem se existir, caso contrário usar o ID como fallback
+            const messageTimestamp = record.message?.timestamp;
+            const rawTimestamp = messageTimestamp 
+              ? new Date(messageTimestamp).getTime() 
+              : record.id; // Usar ID como fallback numérico
+            
+            // Formatar timestamp APENAS uma vez, de forma fixa
+            const formattedTimestamp = messageTimestamp 
+              ? new Date(messageTimestamp).toLocaleString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
+              : `Consulta #${sessionNumber}`;
+            
             sessions.set(record.session_id, {
               session_id: record.session_id,
               title: content.length > 30 ? content.substring(0, 30) + '...' : (content || `Consulta #${sessionNumber}`),
-              timestamp: new Date(record.message?.timestamp || Date.now()).toLocaleString('pt-BR'),
-              preview: content.length > 50 ? content.substring(0, 50) + '...' : (content || 'Nova consulta iniciada')
+              timestamp: formattedTimestamp,
+              preview: content.length > 50 ? content.substring(0, 50) + '...' : (content || 'Nova consulta iniciada'),
+              rawTimestamp: rawTimestamp
             });
           }
         });
 
-        // Ordenar por timestamp mais recente
+        // Ordenar por timestamp mais recente usando rawTimestamp
         const sortedSessions = Array.from(sessions.values())
-          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          .sort((a, b) => b.rawTimestamp - a.rawTimestamp)
           .slice(0, 15); // Mostrar últimas 15 conversas
 
-        setChatHistory(sortedSessions);
+        // Só atualizar se houver mudanças reais
+        setChatHistory(prev => {
+          const prevJson = JSON.stringify(prev);
+          const newJson = JSON.stringify(sortedSessions);
+          return prevJson === newJson ? prev : sortedSessions;
+        });
       }
     } catch (error) {
       console.error('Erro ao carregar histórico:', error);
@@ -117,7 +143,7 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
   useEffect(() => {
     const interval = setInterval(() => {
       loadChatHistory();
-    }, 2000); // Atualiza a cada 2 segundos
+    }, 5000); // Atualiza a cada 5 segundos (reduzido de 2s para menos re-renders)
 
     return () => clearInterval(interval);
   }, []);
