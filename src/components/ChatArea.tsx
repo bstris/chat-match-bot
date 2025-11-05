@@ -112,6 +112,32 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
     if (!currentSessionId) return;
     
     try {
+      console.log('[DEBUG] Tentando salvar mensagem:', {
+        sessionId: currentSessionId,
+        type: message.type,
+        content: message.content.substring(0, 50)
+      });
+
+      // Verificar se já existe uma mensagem idêntica
+      const { data: existing, error: checkError } = await supabase
+        .from('n8n_chat_histories')
+        .select('id')
+        .eq('session_id', currentSessionId)
+        .eq('message->>content', message.content)
+        .eq('message->>type', message.type)
+        .limit(1);
+
+      if (checkError) {
+        console.error('[DEBUG] Erro ao verificar duplicata:', checkError);
+      }
+
+      if (existing && existing.length > 0) {
+        console.log('[DEBUG] Mensagem duplicada detectada - NÃO será salva novamente');
+        return;
+      }
+
+      console.log('[DEBUG] Mensagem nova - salvando no Supabase');
+      
       await supabase
         .from('n8n_chat_histories')
         .insert({
@@ -122,8 +148,10 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
             timestamp: new Date().toISOString()
           }
         });
+      
+      console.log('[DEBUG] Mensagem salva com sucesso');
     } catch (error) {
-      console.error('Erro ao salvar mensagem:', error);
+      console.error('[DEBUG] Erro ao salvar mensagem:', error);
     }
   };
 
