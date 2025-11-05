@@ -48,32 +48,55 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
       if (error) throw error;
 
       if (data) {
-        // Agrupar por session_id e pegar a mensagem mais recente de cada sessão
+        // Agrupar por session_id e pegar a PRIMEIRA mensagem de cada sessão (mais antiga)
         const sessions = new Map();
-        data.forEach((record: any) => {
-          const existingSession = sessions.get(record.session_id);
-          const messageTimestamp = record.message?.timestamp || Date.now();
-          
-          // Atualizar apenas se for uma mensagem mais recente ou se não existir
-          if (!existingSession || new Date(messageTimestamp) > new Date(existingSession.rawTimestamp)) {
+        
+        // Processar em ordem reversa para pegar a primeira mensagem
+        const reversedData = [...data].reverse();
+        
+        reversedData.forEach((record: any) => {
+          if (!sessions.has(record.session_id)) {
             const content = record.message?.content || '';
+            const messageTimestamp = record.message?.timestamp;
             const sessionNumber = record.session_id.split('_')[1] || Math.floor(Math.random() * 1000);
+            
+            // Criar timestamp fixo baseado na primeira mensagem da sessão
+            const fixedTimestamp = messageTimestamp 
+              ? new Date(messageTimestamp).toLocaleString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit', 
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                })
+              : new Date().toLocaleString('pt-BR');
+            
             sessions.set(record.session_id, {
               session_id: record.session_id,
               title: content.length > 30 ? content.substring(0, 30) + '...' : (content || `Consulta #${sessionNumber}`),
-              timestamp: new Date(messageTimestamp).toLocaleString('pt-BR'),
-              rawTimestamp: messageTimestamp,
+              timestamp: fixedTimestamp,
+              rawTimestamp: messageTimestamp || Date.now(),
               preview: content.length > 50 ? content.substring(0, 50) + '...' : (content || 'Nova consulta iniciada')
             });
           }
         });
 
-        // Ordenar por timestamp mais recente (usando rawTimestamp para precisão)
+        // Ordenar por rawTimestamp mais recente
         const sortedSessions = Array.from(sessions.values())
-          .sort((a, b) => new Date(b.rawTimestamp).getTime() - new Date(a.rawTimestamp).getTime())
+          .sort((a, b) => {
+            const timeA = typeof a.rawTimestamp === 'string' ? new Date(a.rawTimestamp).getTime() : a.rawTimestamp;
+            const timeB = typeof b.rawTimestamp === 'string' ? new Date(b.rawTimestamp).getTime() : b.rawTimestamp;
+            return timeB - timeA;
+          })
           .slice(0, 15); // Mostrar últimas 15 conversas
 
-        setChatHistory(sortedSessions);
+        // Atualizar apenas se houver mudanças reais
+        setChatHistory(prev => {
+          const prevJson = JSON.stringify(prev);
+          const newJson = JSON.stringify(sortedSessions);
+          return prevJson === newJson ? prev : sortedSessions;
+        });
       }
     } catch (error) {
       console.error('Erro ao carregar histórico:', error);
