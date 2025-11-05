@@ -65,43 +65,44 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       if (error) throw error;
 
       if (data && data.length > 0) {
-        const loadedMessages = data.map((record: any) => ({
-          id: record.id.toString(),
-          content: record.message.content,
-          type: record.message.type,
-          timestamp: new Date(record.message.timestamp).toLocaleTimeString('pt-BR', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+        // Filtrar e mapear mensagens, ignorando as com timestamp inválido
+        const loadedMessages = data
+          .filter((record: any) => {
+            // Verificar se o timestamp é válido
+            const timestamp = record.message?.timestamp;
+            if (!timestamp) return false;
+            
+            const date = new Date(timestamp);
+            return !isNaN(date.getTime());
           })
-        }));
+          .map((record: any) => ({
+            id: record.id.toString(),
+            content: record.message.content || '',
+            type: record.message.type,
+            timestamp: new Date(record.message.timestamp).toLocaleTimeString('pt-BR', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })
+          }));
         
-        // Merge inteligente: evita duplicatas comparando conteúdo e tipo
-        setMessages(prev => {
-          // Se não há mensagens anteriores, use as carregadas
-          if (prev.length === 0) return loadedMessages;
-          
-          // Verificar duplicatas por conteúdo e tipo (não por ID)
-          const merged = [...loadedMessages];
-          const existingContents = new Set(
-            loadedMessages.map(m => `${m.type}:${m.content}`)
-          );
-          
-          // Adicionar mensagens locais que ainda não foram salvas
-          prev.forEach(localMsg => {
-            const key = `${localMsg.type}:${localMsg.content}`;
-            if (!existingContents.has(key)) {
-              merged.push(localMsg);
-            }
-          });
-          
-          // Ordenar por timestamp se necessário
-          return merged.sort((a, b) => {
-            // IDs do banco são números, IDs locais são timestamps
-            const aId = isNaN(Number(a.id)) ? parseInt(a.id) : Number(a.id);
-            const bId = isNaN(Number(b.id)) ? parseInt(b.id) : Number(b.id);
-            return aId - bId;
-          });
+        // Substituir completamente as mensagens para evitar duplicatas
+        // Criar um Map para garantir unicidade por conteúdo + tipo
+        const uniqueMessages = new Map<string, Message>();
+        
+        loadedMessages.forEach(msg => {
+          const key = `${msg.type}:${msg.content}`;
+          // Usar o ID do banco (menor) como prioridade
+          if (!uniqueMessages.has(key) || Number(msg.id) < Number(uniqueMessages.get(key)!.id)) {
+            uniqueMessages.set(key, msg);
+          }
         });
+        
+        // Converter Map de volta para array e ordenar por ID
+        const finalMessages = Array.from(uniqueMessages.values()).sort((a, b) => {
+          return Number(a.id) - Number(b.id);
+        });
+        
+        setMessages(finalMessages);
       }
     } catch (error) {
       console.error('Erro ao carregar histórico:', error);
@@ -169,7 +170,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
     setNewMessage("");
     setIsLoading(true);
     
-    // Salvar e recarregar para evitar duplicatas
+    // Salvar mensagem no banco
     await saveMessage(message);
 
     // Chamar webhook N8N
@@ -214,9 +215,6 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       
       setMessages(prev => [...prev, iaMessage]);
       await saveMessage(iaMessage);
-      
-      // Recarregar histórico após salvar para sincronizar IDs do banco
-      setTimeout(() => loadChatHistory(), 500);
     } catch (error) {
       console.error('Erro ao chamar webhook:', error);
       
@@ -229,9 +227,6 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       
       setMessages(prev => [...prev, errorMessage]);
       await saveMessage(errorMessage);
-      
-      // Recarregar histórico após salvar
-      setTimeout(() => loadChatHistory(), 500);
     } finally {
       setIsLoading(false);
     }
