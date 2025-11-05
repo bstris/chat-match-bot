@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { AICandidateCard } from "./AICandidateCard";
 import { useFavorites } from "@/hooks/useFavorites";
+import { ChatFavoriteVagaDialog } from "./ChatFavoriteVagaDialog";
 
 interface Message {
   id: string;
@@ -26,7 +27,14 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
   const [newMessage, setNewMessage] = useState("");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { addFavorite, removeFavorite, isFavorited } = useFavorites();
+  const { 
+    addFavorite, 
+    removeFavorite, 
+    isFavorited,
+    showVagaDialog,
+    setShowVagaDialog,
+    saveToSupabase
+  } = useFavorites();
 
   // Função para criar uma nova sessão
   const createNewSession = () => {
@@ -404,6 +412,14 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
           </Button>
         </div>
       </div>
+
+      <ChatFavoriteVagaDialog
+        open={showVagaDialog}
+        onOpenChange={setShowVagaDialog}
+        onVagaSelected={(vagaId) => {
+          saveToSupabase(vagaId);
+        }}
+      />
     </div>
   );
 };
