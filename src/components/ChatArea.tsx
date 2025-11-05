@@ -74,7 +74,13 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
             minute: '2-digit' 
           })
         }));
-        setMessages(loadedMessages);
+        
+        // Só atualizar se for diferente do estado atual (evita duplicatas)
+        setMessages(prev => {
+          const prevJson = JSON.stringify(prev.map(m => m.id));
+          const newJson = JSON.stringify(loadedMessages.map(m => m.id));
+          return prevJson === newJson ? prev : loadedMessages;
+        });
       }
     } catch (error) {
       console.error('Erro ao carregar histórico:', error);
