@@ -18,8 +18,15 @@ interface Vaga {
 
 interface FavoriteCandidato {
   id: string;
-  candidato_id: number;
-  vaga: {
+  nome: string;
+  email: string;
+  telefone: string;
+  link: string;
+  resumo: string;
+  session_id: string;
+  candidate_index: number;
+  vaga_id: string | null;
+  vaga?: {
     id: string;
     titulo: string;
   };
@@ -88,52 +95,49 @@ export default function Favorites() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('favoritos' as any)
+        .from('chat_favoritos')
         .select(`
           id,
-          candidato_id,
+          nome,
+          email,
+          telefone,
+          link,
+          resumo,
+          session_id,
+          candidate_index,
+          vaga_id,
           vaga:vagas(id, titulo)
         `)
-        .eq('recrutador_id', user.id);
+        .eq('recrutador_id', user.id)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setFavoritos((data as any) || []);
+      setFavoritos(data || []);
     } catch (error) {
       console.error('Erro ao carregar favoritos:', error);
     }
   };
 
-  const filterCandidates = async () => {
+  const filterCandidates = () => {
     try {
       let filteredFavoritos = favoritos;
       if (selectedVaga !== "all") {
-        filteredFavoritos = favoritos.filter(f => f.vaga.id === selectedVaga);
+        filteredFavoritos = favoritos.filter(f => f.vaga_id === selectedVaga);
       }
 
-      const candidateIds = filteredFavoritos.map(f => f.candidato_id);
-      
-      if (candidateIds.length === 0) {
-        setCandidates([]);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('GUPPY' as any)
-        .select('*')
-        .in('candidatoId', candidateIds);
-
-      if (error) throw error;
-
-      const mappedCandidates = (data || []).map((candidate: any, index: number) => ({
-        id: candidate.candidatoId?.toString() || candidate.id_candidato?.toString() || index.toString(),
-        name: candidate.nome || `Candidato ${index + 1}`,
-        title: candidate.title || "Desenvolvedor",
-        location: candidate.zipCode || "Brasil",
-        experience: `${Math.floor(Math.random() * 8) + 1} anos`,
-        compatibility: Math.floor(Math.random() * 30) + 70,
-        skills: ["React", "JavaScript", "TypeScript"],
-        summary: candidate.description?.substring(0, 100) + "..." || "Candidato da base de dados",
-        avatar: candidate.nome ? candidate.nome.charAt(0).toUpperCase() : `C${index + 1}`
+      const mappedCandidates = filteredFavoritos.map((fav, index) => ({
+        id: fav.id,
+        name: fav.nome,
+        title: "Candidato do Chat IA",
+        location: fav.email || "Não informado",
+        experience: fav.telefone || "Não informado",
+        compatibility: 85,
+        skills: [],
+        summary: fav.resumo || "Sem resumo disponível",
+        avatar: fav.nome.charAt(0).toUpperCase(),
+        email: fav.email,
+        telefone: fav.telefone,
+        link: fav.link
       }));
 
       setCandidates(mappedCandidates);
@@ -148,9 +152,9 @@ export default function Favorites() {
       if (!user) return;
 
       const { error } = await supabase
-        .from('favoritos' as any)
+        .from('chat_favoritos')
         .delete()
-        .eq('candidato_id', parseInt(candidateId))
+        .eq('id', candidateId)
         .eq('recrutador_id', user.id);
 
       if (error) throw error;
