@@ -198,11 +198,11 @@ export const ChatSidebar = ({ onSelectChat, currentSessionId }: ChatSidebarProps
       </div>
 
       <ScrollArea className="flex-1 p-4">
-        <div className="space-y-3">
+        <div className="space-y-3 min-w-max pr-4">
           {chatHistory.map((chat) => (
             <div
               key={chat.session_id}
-              className={`group relative p-4 cursor-pointer transition-all duration-200 rounded-2xl ${
+              className={`group relative p-4 cursor-pointer transition-all duration-200 rounded-2xl min-w-[280px] ${
                 currentSessionId === chat.session_id
                   ? 'bg-primary/5 ring-1 ring-primary/20'
                   : 'bg-muted/30 hover:bg-muted/50'

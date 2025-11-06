@@ -56,16 +56,6 @@ export const AICandidateCard = ({
             {content}
           </ReactMarkdown>
         </div>
-
-        {compatibility !== undefined && compatibility > 0 && (
-          <div className="mt-4 space-y-1">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-medium text-foreground">Compatibilidade</span>
-              <span className="text-xs font-bold text-primary whitespace-nowrap">{compatibility}%</span>
-            </div>
-            <Progress value={compatibility} className="h-1.5" />
-          </div>
-        )}
       </Card>
     </motion.div>
   );
