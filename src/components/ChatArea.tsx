@@ -42,6 +42,12 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
     const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     setCurrentSessionId(newSessionId);
     setMessages([]); // Limpar mensagens da nova sessão
+    
+    // Limpar candidatos do painel
+    if (onCandidatesUpdate) {
+      onCandidatesUpdate([]);
+    }
+    
     if (onSessionCreate) {
       onSessionCreate(newSessionId);
     }
@@ -113,8 +119,8 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
         
         setMessages(finalMessages);
         
-        // Extrair candidatos da última mensagem IA
-        const lastAiMessage = finalMessages.reverse().find(m => m.type === 'ai');
+        // Extrair candidatos da última mensagem IA (criar cópia para não mutar o array)
+        const lastAiMessage = [...finalMessages].reverse().find(m => m.type === 'ai');
         if (lastAiMessage) {
           extractAndNotifyCandidates(lastAiMessage.content);
         }
@@ -289,23 +295,32 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
     const candidateParts = parseMultipleCandidates(content);
     
     if (candidateParts.length > 0) {
-      const candidates = candidateParts.map((part, index) => {
-        const info = extractCandidateInfo(part);
-        return {
-          id: `candidate_${Date.now()}_${index}`,
-          name: info.nome,
-          title: "Candidato",
-          location: info.email || "Não informado",
-          experience: info.telefone || "Não informado",
-          compatibility: info.compatibilidade,
-          skills: [],
-          summary: info.resumo,
-          avatar: info.nome.charAt(0).toUpperCase(),
-          link: info.link,
-          email: info.email,
-          telefone: info.telefone,
-        };
-      });
+      const candidates = candidateParts
+        .map((part, index) => {
+          const info = extractCandidateInfo(part);
+          return {
+            id: `candidate_${Date.now()}_${index}`,
+            name: info.nome,
+            title: "Candidato",
+            location: info.email || "Não informado",
+            experience: info.telefone || "Não informado",
+            compatibility: info.compatibilidade,
+            skills: [],
+            summary: info.resumo,
+            avatar: info.nome.charAt(0).toUpperCase(),
+            link: info.link,
+            email: info.email,
+            telefone: info.telefone,
+          };
+        })
+        .filter(candidate => {
+          // Filtrar candidatos inválidos (sem nome real, sem compatibilidade, sem email/telefone/resumo)
+          const hasValidName = candidate.name !== "Candidato" && candidate.name !== "Nome não informado";
+          const hasAnyInfo = candidate.email || candidate.telefone || candidate.summary;
+          const hasCompatibility = candidate.compatibility > 0;
+          
+          return hasValidName && hasAnyInfo && hasCompatibility;
+        });
 
       // Ordenar por compatibilidade (maior para menor)
       const sortedCandidates = candidates.sort((a, b) => b.compatibility - a.compatibility);

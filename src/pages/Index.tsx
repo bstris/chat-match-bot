@@ -91,6 +91,10 @@ const Index = () => {
           onSelectChat={(sessionId) => {
             setSelectedSessionId(sessionId);
             setShowResults(!!sessionId);
+            // Limpar candidatos ao trocar de sessão
+            if (!sessionId) {
+              setCandidates([]);
+            }
           }}
           currentSessionId={selectedSessionId}
         />
