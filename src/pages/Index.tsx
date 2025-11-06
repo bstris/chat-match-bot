@@ -13,6 +13,7 @@ const Index = () => {
   const [selectedSessionId, setSelectedSessionId] = useState<string | undefined>(undefined);
   const [showResults, setShowResults] = useState(false);
   const [userName, setUserName] = useState<string>("");
+  const [candidates, setCandidates] = useState<any[]>([]);
   const navigate = useNavigate();
   const { showVagaDialog, setShowVagaDialog, saveToSupabase } = useFavorites();
 
@@ -100,9 +101,12 @@ const Index = () => {
               setSelectedSessionId(sessionId);
               setShowResults(true);
             }}
+            onCandidatesUpdate={(newCandidates) => {
+              setCandidates(newCandidates);
+            }}
           />
         </div>
-        {showResults && <CandidateResults />}
+        {showResults && <CandidateResults candidates={candidates} />}
       </main>
 
       <FavoriteVagaSelector

@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Calendar, Heart } from "lucide-react";
+import { MapPin, Calendar, Heart, ExternalLink } from "lucide-react";
 import { useState } from "react";
 
 interface CandidateCardProps {
@@ -16,6 +16,7 @@ interface CandidateCardProps {
   summary: string;
   avatar: string;
   rank?: number;
+  link?: string;
   onFavorite: (candidateId: string) => void;
   onViewDetails: (candidateId: string) => void;
 }
@@ -31,6 +32,7 @@ export const CandidateCard = ({
   summary,
   avatar,
   rank,
+  link,
   onFavorite,
   onViewDetails
 }: CandidateCardProps) => {
@@ -48,12 +50,26 @@ export const CandidateCard = ({
       onClick={() => onViewDetails(id)}
     >
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 flex-1">
           <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-medium">
             {avatar}
           </div>
-          <div>
-            <h4 className="font-medium text-foreground">{name}</h4>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="font-medium text-foreground truncate">{name}</h4>
+              {link && (
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-shrink-0 text-primary hover:text-primary/80 transition-colors"
+                  title="Ver perfil completo"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">{title}</p>
           </div>
         </div>

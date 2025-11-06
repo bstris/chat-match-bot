@@ -20,9 +20,10 @@ interface Message {
 interface ChatAreaProps {
   sessionId?: string;
   onSessionCreate?: (sessionId: string) => void;
+  onCandidatesUpdate?: (candidates: any[]) => void;
 }
 
-export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatAreaProps) => {
+export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidatesUpdate }: ChatAreaProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -111,6 +112,12 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
         });
         
         setMessages(finalMessages);
+        
+        // Extrair candidatos da última mensagem IA
+        const lastAiMessage = finalMessages.reverse().find(m => m.type === 'ai');
+        if (lastAiMessage) {
+          extractAndNotifyCandidates(lastAiMessage.content);
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar histórico:', error);
@@ -223,6 +230,9 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       
       setMessages(prev => [...prev, iaMessage]);
       await saveMessage(iaMessage);
+      
+      // Extrair e notificar candidatos
+      extractAndNotifyCandidates(iaContent);
     } catch (error) {
       console.error('Erro ao chamar webhook:', error);
       
@@ -262,6 +272,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
     const telefoneMatch = content.match(/\*\*Telefone:\*\*\s*(.+)/);
     const linkMatch = content.match(/\[([^\]]+)\]\(([^)]+)\)/);
     const resumoMatch = content.match(/\*\*Resumo:\*\*\s*(.+)/);
+    const compatibilidadeMatch = content.match(/\*\*Compatibilidade com a vaga:\*\*\s*(\d+)%/);
 
     return {
       nome: nomeMatch?.[1]?.trim() || "Candidato",
@@ -269,7 +280,46 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate }: ChatArea
       telefone: telefoneMatch?.[1]?.trim() || "",
       link: linkMatch?.[2] || "",
       resumo: resumoMatch?.[1]?.trim() || "",
+      compatibilidade: compatibilidadeMatch ? parseInt(compatibilidadeMatch[1]) : 0,
     };
+  };
+
+  // Função para extrair e ordenar candidatos da resposta IA
+  const extractAndNotifyCandidates = (content: string) => {
+    const candidateParts = parseMultipleCandidates(content);
+    
+    if (candidateParts.length > 0) {
+      const candidates = candidateParts.map((part, index) => {
+        const info = extractCandidateInfo(part);
+        return {
+          id: `candidate_${Date.now()}_${index}`,
+          name: info.nome,
+          title: "Candidato",
+          location: info.email || "Não informado",
+          experience: info.telefone || "Não informado",
+          compatibility: info.compatibilidade,
+          skills: [],
+          summary: info.resumo,
+          avatar: info.nome.charAt(0).toUpperCase(),
+          link: info.link,
+          email: info.email,
+          telefone: info.telefone,
+        };
+      });
+
+      // Ordenar por compatibilidade (maior para menor)
+      const sortedCandidates = candidates.sort((a, b) => b.compatibility - a.compatibility);
+      
+      // Notificar o componente pai
+      if (onCandidatesUpdate) {
+        onCandidatesUpdate(sortedCandidates);
+      }
+    } else {
+      // Limpar candidatos se não houver nenhum
+      if (onCandidatesUpdate) {
+        onCandidatesUpdate([]);
+      }
+    }
   };
 
   // Função de favoritar candidato

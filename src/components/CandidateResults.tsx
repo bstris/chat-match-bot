@@ -16,50 +16,21 @@ interface Candidate {
   skills: string[];
   summary: string;
   avatar: string;
+  link?: string;
 }
 
 import { CandidateCard } from "./CandidateCard";
 import { FavoriteVagaDialog } from "./FavoriteVagaDialog";
 import { CandidateDetailDialog } from "./CandidateDetailDialog";
 
-export const CandidateResults = () => {
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+interface CandidateResultsProps {
+  candidates: Candidate[];
+}
+
+export const CandidateResults = ({ candidates }: CandidateResultsProps) => {
   const [favoriteDialogOpen, setFavoriteDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
-
-  useEffect(() => {
-    loadCandidatesFromDocuments();
-  }, []);
-
-  const loadCandidatesFromDocuments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('GUPPY' as any)
-        .select('*')
-        .limit(10);
-
-      if (error) throw error;
-
-      if (data) {
-        const realCandidates: Candidate[] = data.map((candidate: any, index: number) => ({
-          id: candidate.candidatoId?.toString() || candidate.id_candidato?.toString() || index.toString(),
-          name: candidate.nome || `Candidato ${index + 1}`,
-          title: candidate.title || "Desenvolvedor",
-          location: candidate.zipCode || "Brasil",
-          experience: `${Math.floor(Math.random() * 8) + 1} anos`,
-          compatibility: Math.floor(Math.random() * 30) + 70,
-          skills: ["React", "JavaScript", "TypeScript"].slice(0, Math.floor(Math.random() * 3) + 1),
-          summary: candidate.description?.substring(0, 100) + "..." || "Candidato da base de dados",
-          avatar: candidate.nome ? candidate.nome.charAt(0).toUpperCase() : `C${index + 1}`
-        }));
-
-        setCandidates(realCandidates);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar candidatos:', error);
-    }
-  };
 
   const handleFavorite = (candidateId: string) => {
     const candidate = candidates.find(c => c.id === candidateId);
