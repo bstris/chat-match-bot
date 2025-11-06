@@ -62,7 +62,7 @@ export const CandidateResults = ({ candidates }: CandidateResultsProps) => {
         </div>
 
         <ScrollArea className="flex-1 min-h-0">
-          <div className="p-4 space-y-4 min-w-max pr-4">
+          <div className="p-4 space-y-4 flex flex-col items-center">
             {candidates.map((candidate, index) => (
               <CandidateCard
                 key={candidate.id}
