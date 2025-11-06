@@ -50,8 +50,8 @@ export const CandidateCard = ({
       onClick={() => onViewDetails(id)}
     >
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-3 flex-1">
-          <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-medium">
+        <div className="flex items-center space-x-3 flex-1 min-w-0">
+          <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-medium flex-shrink-0">
             {avatar}
           </div>
           <div className="flex-1 min-w-0">
@@ -70,10 +70,10 @@ export const CandidateCard = ({
                 </a>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">{title}</p>
+            <p className="text-sm text-muted-foreground truncate">{title}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {rank && (
             <Badge variant={rank === 1 ? "default" : "secondary"} className="text-xs">
               #{rank}
@@ -93,10 +93,10 @@ export const CandidateCard = ({
       </div>
 
       <div className="space-y-3">
-        <div>
-          <div className="flex items-center justify-between mb-1">
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-sm font-medium text-foreground">Compatibilidade</span>
-            <span className="text-sm font-bold text-primary">{compatibility}%</span>
+            <span className="text-sm font-bold text-primary whitespace-nowrap">{compatibility}%</span>
           </div>
           <Progress 
             value={compatibility} 
@@ -104,37 +104,39 @@ export const CandidateCard = ({
           />
         </div>
 
-        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-          <div className="flex items-center">
-            <MapPin className="w-3 h-3 mr-1" />
-            {location}
+        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+          <div className="flex items-center gap-1">
+            <MapPin className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{location}</span>
           </div>
-          <div className="flex items-center">
-            <Calendar className="w-3 h-3 mr-1" />
-            {experience}
+          <div className="flex items-center gap-1">
+            <Calendar className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{experience}</span>
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground line-clamp-2">
+        <p className="text-xs text-muted-foreground line-clamp-3">
           {summary}
         </p>
 
-        <div className="flex flex-wrap gap-1">
-          {skills.slice(0, 3).map((skill) => (
-            <Badge 
-              key={skill} 
-              variant="outline" 
-              className="text-xs border-primary/20 text-primary"
-            >
-              {skill}
-            </Badge>
-          ))}
-          {skills.length > 3 && (
-            <Badge variant="outline" className="text-xs">
-              +{skills.length - 3}
-            </Badge>
-          )}
-        </div>
+        {skills.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {skills.slice(0, 3).map((skill) => (
+              <Badge 
+                key={skill} 
+                variant="outline" 
+                className="text-xs border-primary/20 text-primary"
+              >
+                {skill}
+              </Badge>
+            ))}
+            {skills.length > 3 && (
+              <Badge variant="outline" className="text-xs">
+                +{skills.length - 3}
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
     </Card>
   );

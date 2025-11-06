@@ -11,6 +11,7 @@ export interface FavoriteCandidate {
   resumo: string;
   sessionId: string;
   candidateIndex: number;
+  compatibilidade?: number;
 }
 
 export const useFavorites = () => {
@@ -46,7 +47,8 @@ export const useFavorites = () => {
           link: fav.link || '',
           resumo: fav.resumo,
           sessionId: fav.session_id,
-          candidateIndex: fav.candidate_index
+          candidateIndex: fav.candidate_index,
+          compatibilidade: fav.compatibilidade || 0
         }));
         setFavorites(mappedFavorites);
       }
@@ -100,7 +102,8 @@ export const useFavorites = () => {
           telefone: candidate.telefone,
           link: candidate.link,
           resumo: candidate.resumo,
-          vaga_id: vagaId
+          vaga_id: vagaId,
+          compatibilidade: candidate.compatibilidade || 0
         });
 
       if (error) throw error;
@@ -137,7 +140,8 @@ export const useFavorites = () => {
           telefone: pendingCandidate.telefone,
           link: pendingCandidate.link,
           resumo: pendingCandidate.resumo,
-          vaga_id: vagaId
+          vaga_id: vagaId,
+          compatibilidade: pendingCandidate.compatibilidade || 0
         });
 
       if (error) throw error;

@@ -4,19 +4,22 @@ import { Star } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
+import { Progress } from "@/components/ui/progress";
 
 interface AICandidateCardProps {
   content: string;
   candidateIndex: number;
   onFavorite: (index: number, isFavorited: boolean) => void;
   isFavorited?: boolean;
+  compatibility?: number;
 }
 
 export const AICandidateCard = ({ 
   content, 
   candidateIndex, 
   onFavorite,
-  isFavorited = false 
+  isFavorited = false,
+  compatibility 
 }: AICandidateCardProps) => {
   const [favorited, setFavorited] = useState(isFavorited);
 
@@ -53,6 +56,16 @@ export const AICandidateCard = ({
             {content}
           </ReactMarkdown>
         </div>
+
+        {compatibility !== undefined && compatibility > 0 && (
+          <div className="mt-4 space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-medium text-foreground">Compatibilidade</span>
+              <span className="text-xs font-bold text-primary whitespace-nowrap">{compatibility}%</span>
+            </div>
+            <Progress value={compatibility} className="h-1.5" />
+          </div>
+        )}
       </Card>
     </motion.div>
   );

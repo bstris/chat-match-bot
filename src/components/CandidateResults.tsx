@@ -50,8 +50,8 @@ export const CandidateResults = ({ candidates }: CandidateResultsProps) => {
 
   return (
     <>
-      <Card className="w-96 h-full bg-card border-border shadow-card rounded-xl">
-        <div className="p-4 border-b border-border">
+      <Card className="w-96 h-full bg-card border-border shadow-card rounded-xl flex flex-col">
+        <div className="p-4 border-b border-border flex-shrink-0">
           <h3 className="text-lg font-semibold text-foreground flex items-center">
             <Star className="w-5 h-5 mr-2 text-primary" />
             Melhores Matches
@@ -61,8 +61,8 @@ export const CandidateResults = ({ candidates }: CandidateResultsProps) => {
           </p>
         </div>
 
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="p-4 space-y-4">
             {candidates.map((candidate, index) => (
               <CandidateCard
                 key={candidate.id}
@@ -75,7 +75,7 @@ export const CandidateResults = ({ candidates }: CandidateResultsProps) => {
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border flex-shrink-0">
           <Card className="p-3 bg-gradient-card shadow-card rounded-lg">
             <div className="flex items-center space-x-2 text-primary mb-2">
               <Briefcase className="w-4 h-4" />
