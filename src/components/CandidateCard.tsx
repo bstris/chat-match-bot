@@ -52,7 +52,7 @@ export const CandidateCard = ({
 
   return (
     <Card 
-      className="p-4 cursor-pointer hover:bg-secondary/50 transition-all duration-300 border-border bg-gradient-card hover:shadow-glow shadow-card rounded-lg"
+      className="p-4 cursor-pointer hover:bg-secondary/50 transition-all duration-300 border-border bg-gradient-card hover:shadow-glow shadow-card rounded-lg w-full max-w-[320px]"
       onClick={() => onViewDetails(id)}
     >
       <div className="flex items-start justify-between mb-3">
