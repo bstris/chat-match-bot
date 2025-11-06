@@ -397,15 +397,19 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
                 {message.type === 'ai' && parseMultipleCandidates(message.content).length > 1 ? (
                   // Renderizar múltiplos candidatos como cards
                   <div className="space-y-4 w-full">
-                    {parseMultipleCandidates(message.content).map((candidateContent, index) => (
-                      <AICandidateCard
-                        key={`${message.id}_${index}`}
-                        content={candidateContent}
-                        candidateIndex={index}
-                        onFavorite={(idx, isFav) => handleFavoriteCandidate(message.id, idx, isFav)}
-                        isFavorited={currentSessionId ? isFavorited(currentSessionId, index) : false}
-                      />
-                    ))}
+                    {parseMultipleCandidates(message.content).map((candidateContent, index) => {
+                      const candidateInfo = extractCandidateInfo(candidateContent);
+                      return (
+                        <AICandidateCard
+                          key={`${message.id}_${index}`}
+                          content={candidateContent}
+                          candidateIndex={index}
+                          onFavorite={(idx, isFav) => handleFavoriteCandidate(message.id, idx, isFav)}
+                          isFavorited={currentSessionId ? isFavorited(currentSessionId, index) : false}
+                          compatibility={candidateInfo.compatibilidade}
+                        />
+                      );
+                    })}
                     <p className="text-xs text-muted-foreground mt-4">
                       {message.timestamp}
                     </p>

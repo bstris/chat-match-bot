@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart, Filter, Briefcase, ArrowLeft } from "lucide-react";
+import { Heart, Filter, Briefcase, ArrowLeft, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CandidateCard } from "@/components/CandidateCard";
@@ -26,6 +26,7 @@ interface FavoriteCandidato {
   session_id: string;
   candidate_index: number;
   vaga_id: string | null;
+  compatibilidade?: number;
   vaga?: {
     id: string;
     titulo: string;
@@ -256,6 +257,8 @@ export default function Favorites() {
                   {...candidate}
                   onFavorite={handleRemoveFavorite}
                   onViewDetails={handleViewDetails}
+                  favoriteIcon={Trash2}
+                  favoriteIconActive={Trash2}
                 />
               ))}
             </div>

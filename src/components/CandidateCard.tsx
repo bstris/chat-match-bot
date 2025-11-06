@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Heart, ExternalLink } from "lucide-react";
+import { MapPin, Calendar, Heart, ExternalLink, LucideIcon } from "lucide-react";
 import { useState } from "react";
 
 interface CandidateCardProps {
@@ -19,6 +19,8 @@ interface CandidateCardProps {
   link?: string;
   onFavorite: (candidateId: string) => void;
   onViewDetails: (candidateId: string) => void;
+  favoriteIcon?: LucideIcon;
+  favoriteIconActive?: LucideIcon;
 }
 
 export const CandidateCard = ({
@@ -34,7 +36,9 @@ export const CandidateCard = ({
   rank,
   link,
   onFavorite,
-  onViewDetails
+  onViewDetails,
+  favoriteIcon: FavoriteIcon = Heart,
+  favoriteIconActive: FavoriteIconActive = Heart
 }: CandidateCardProps) => {
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -43,6 +47,8 @@ export const CandidateCard = ({
     setIsFavorited(!isFavorited);
     onFavorite(id);
   };
+
+  const IconComponent = isFavorited ? FavoriteIconActive : FavoriteIcon;
 
   return (
     <Card 
@@ -85,7 +91,7 @@ export const CandidateCard = ({
             onClick={handleFavoriteClick}
             className="h-8 w-8 p-0"
           >
-            <Heart 
+            <IconComponent 
               className={`w-4 h-4 ${isFavorited ? 'fill-destructive text-destructive' : 'text-muted-foreground'}`}
             />
           </Button>

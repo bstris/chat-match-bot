@@ -38,6 +38,7 @@ export type Database = {
       chat_favoritos: {
         Row: {
           candidate_index: number
+          compatibilidade: number | null
           created_at: string | null
           email: string | null
           id: string
@@ -52,6 +53,7 @@ export type Database = {
         }
         Insert: {
           candidate_index: number
+          compatibilidade?: number | null
           created_at?: string | null
           email?: string | null
           id?: string
@@ -66,6 +68,7 @@ export type Database = {
         }
         Update: {
           candidate_index?: number
+          compatibilidade?: number | null
           created_at?: string | null
           email?: string | null
           id?: string
