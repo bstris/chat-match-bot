@@ -14,6 +14,7 @@ const Index = () => {
   const [showResults, setShowResults] = useState(false);
   const [userName, setUserName] = useState<string>("");
   const [candidates, setCandidates] = useState<any[]>([]);
+  const [sessionCandidates, setSessionCandidates] = useState<Map<string, any[]>>(new Map());
   const navigate = useNavigate();
   const { showVagaDialog, setShowVagaDialog, saveToSupabase } = useFavorites();
 
@@ -91,8 +92,10 @@ const Index = () => {
           onSelectChat={(sessionId) => {
             setSelectedSessionId(sessionId);
             setShowResults(!!sessionId);
-            // Limpar candidatos ao trocar de sessão
-            if (!sessionId) {
+            // Restaurar candidatos da sessão selecionada
+            if (sessionId && sessionCandidates.has(sessionId)) {
+              setCandidates(sessionCandidates.get(sessionId) || []);
+            } else {
               setCandidates([]);
             }
           }}
@@ -106,7 +109,33 @@ const Index = () => {
               setShowResults(true);
             }}
             onCandidatesUpdate={(newCandidates) => {
-              setCandidates(newCandidates);
+              if (selectedSessionId) {
+                // Acumular candidatos por sessão
+                const existingCandidates = sessionCandidates.get(selectedSessionId) || [];
+                
+                // Criar um mapa para remover duplicatas por nome e email
+                const candidateMap = new Map();
+                
+                // Adicionar candidatos existentes
+                existingCandidates.forEach(c => {
+                  const key = `${c.name}_${c.email}`;
+                  candidateMap.set(key, c);
+                });
+                
+                // Adicionar novos candidatos (sobrescrever se já existir)
+                newCandidates.forEach(c => {
+                  const key = `${c.name}_${c.email}`;
+                  candidateMap.set(key, c);
+                });
+                
+                // Converter de volta para array e ordenar por compatibilidade
+                const mergedCandidates = Array.from(candidateMap.values())
+                  .sort((a, b) => b.compatibility - a.compatibility);
+                
+                // Atualizar estado
+                setSessionCandidates(prev => new Map(prev).set(selectedSessionId, mergedCandidates));
+                setCandidates(mergedCandidates);
+              }
             }}
           />
         </div>

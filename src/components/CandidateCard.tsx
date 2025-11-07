@@ -52,11 +52,12 @@ export const CandidateCard = ({
 
   return (
     <Card 
-      className="p-4 cursor-pointer hover:bg-secondary/50 transition-all duration-300 border-border bg-gradient-card hover:shadow-glow shadow-card rounded-lg w-full max-w-[320px]"
+      className="cursor-pointer hover:bg-secondary/50 transition-all duration-300 border-border bg-gradient-card hover:shadow-glow shadow-card rounded-lg w-full max-w-[347px] h-[211px]"
       onClick={() => onViewDetails(id)}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-3 flex-1 min-w-0">
+      <div className="p-4 h-full flex flex-col">
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
           <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-medium flex-shrink-0">
             {avatar}
           </div>
@@ -98,7 +99,7 @@ export const CandidateCard = ({
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2 flex-1 flex flex-col">
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm font-medium text-foreground">Compatibilidade</span>
@@ -121,13 +122,13 @@ export const CandidateCard = ({
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground line-clamp-3">
+        <p className="text-xs text-muted-foreground line-clamp-2 flex-1">
           {summary}
         </p>
 
         {skills.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {skills.slice(0, 3).map((skill) => (
+            {skills.slice(0, 2).map((skill) => (
               <Badge 
                 key={skill} 
                 variant="outline" 
@@ -136,13 +137,14 @@ export const CandidateCard = ({
                 {skill}
               </Badge>
             ))}
-            {skills.length > 3 && (
+            {skills.length > 2 && (
               <Badge variant="outline" className="text-xs">
-                +{skills.length - 3}
+                +{skills.length - 2}
               </Badge>
             )}
           </div>
         )}
+      </div>
       </div>
     </Card>
   );

@@ -325,16 +325,12 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
       // Ordenar por compatibilidade (maior para menor)
       const sortedCandidates = candidates.sort((a, b) => b.compatibility - a.compatibility);
       
-      // Notificar o componente pai
-      if (onCandidatesUpdate) {
+      // Notificar o componente pai APENAS se houver candidatos válidos
+      if (sortedCandidates.length > 0 && onCandidatesUpdate) {
         onCandidatesUpdate(sortedCandidates);
       }
-    } else {
-      // Limpar candidatos se não houver nenhum
-      if (onCandidatesUpdate) {
-        onCandidatesUpdate([]);
-      }
     }
+    // Removido: não limpar candidatos se não houver nenhum novo
   };
 
   // Função de favoritar candidato
