@@ -196,7 +196,23 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
 
     // Chamar webhook N8N
     try {
-      console.log('Enviando para webhook:', { message: newMessage, sessionId: currentSessionId });
+      // Preparar o histórico de mensagens para enviar ao n8n
+      const chatHistory = messages.map(msg => ({
+        role: msg.type === 'human' ? 'user' : 'assistant',
+        content: msg.content
+      }));
+      
+      // Adicionar a nova mensagem ao histórico
+      chatHistory.push({
+        role: 'user',
+        content: newMessage
+      });
+      
+      console.log('Enviando para webhook:', { 
+        message: newMessage, 
+        sessionId: currentSessionId,
+        chatHistory: chatHistory 
+      });
       
       const response = await fetch('https://engeform.up.railway.app/webhook/f6828a64-e683-4e53-a1b3-f4b149caf760', {
         method: 'POST',
@@ -205,7 +221,8 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
         },
         body: JSON.stringify({
           message: newMessage,
-          sessionId: currentSessionId
+          sessionId: currentSessionId,
+          chatHistory: chatHistory
         })
       });
 
