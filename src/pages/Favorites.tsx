@@ -180,7 +180,7 @@ export default function Favorites() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/80 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto pl-12 pr-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Heart className="w-6 h-6 text-primary" />
@@ -215,7 +215,7 @@ export default function Favorites() {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-6">
+      <main className="container mx-auto pl-12 pr-6 py-6">
         <div className="mb-6">
           <div className="flex items-center gap-4">
             <Filter className="w-5 h-5 text-muted-foreground" />
@@ -250,7 +250,7 @@ export default function Favorites() {
               </p>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {candidates.map((candidate) => (
                 <CandidateCard
                   key={candidate.id}
