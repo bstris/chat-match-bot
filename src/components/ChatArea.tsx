@@ -275,33 +275,72 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
 
   // Função para detectar múltiplos candidatos na mensagem
   const parseMultipleCandidates = (content: string): string[] => {
-    // Detectar se há múltiplos candidatos separados por linhas vazias ou marcadores
-    const candidatePattern = /(?:^|\n)(?:\*\*Nome:\*\*|\*\*Candidato)/gm;
-    const matches = content.match(candidatePattern);
+    // Detectar diferentes padrões de candidatos
+    // Padrão 1: **Nome:** (formato original)
+    const pattern1 = /(?:^|\n)(?:\*\*Nome:\*\*|\*\*Candidato)/gm;
+    const matches1 = content.match(pattern1);
     
-    if (!matches || matches.length <= 1) {
-      return []; // Mensagem única, não tem múltiplos candidatos
+    if (matches1 && matches1.length > 1) {
+      const parts = content.split(/(?=\n\*\*(?:Nome|Candidato))/);
+      return parts.filter(part => part.trim().length > 0);
     }
-
-    // Dividir o conteúdo em blocos de candidatos
-    const parts = content.split(/(?=\n\*\*(?:Nome|Candidato))/);
-    return parts.filter(part => part.trim().length > 0);
+    
+    // Padrão 2: Nome: (sem negrito, formato de lista)
+    const pattern2 = /(?:^|\n)Nome:\s*\w/gm;
+    const matches2 = content.match(pattern2);
+    
+    if (matches2 && matches2.length > 1) {
+      // Dividir por "Nome:" mas manter o marcador
+      const parts = content.split(/(?=\n?Nome:)/);
+      return parts.filter(part => part.trim().length > 0 && part.includes('Nome:'));
+    }
+    
+    // Padrão 3: Detectar por múltiplos emails (indicativo de múltiplos candidatos)
+    const emailPattern = /Email:\s*[\w.+-]+@[\w.-]+\.\w+/gm;
+    const emailMatches = content.match(emailPattern);
+    
+    if (emailMatches && emailMatches.length > 1) {
+      // Tentar dividir entre candidatos usando Email como delimitador
+      const parts: string[] = [];
+      let currentPart = '';
+      const lines = content.split('\n');
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.match(/^(Nome:|Email:|\*\*Nome:\*\*)/)) {
+          if (currentPart.trim() && currentPart.includes('Email:')) {
+            parts.push(currentPart.trim());
+            currentPart = '';
+          }
+        }
+        currentPart += line + '\n';
+      }
+      
+      if (currentPart.trim() && currentPart.includes('Email:')) {
+        parts.push(currentPart.trim());
+      }
+      
+      return parts.filter(part => part.length > 0);
+    }
+    
+    return []; // Mensagem única, não tem múltiplos candidatos
   };
 
   // Função para extrair informações do candidato
   const extractCandidateInfo = (content: string) => {
-    const nomeMatch = content.match(/\*\*Nome:\*\*\s*(.+)/);
-    const emailMatch = content.match(/\*\*Email:\*\*\s*(.+)/);
-    const telefoneMatch = content.match(/\*\*Telefone:\*\*\s*(.+)/);
-    const linkMatch = content.match(/\[([^\]]+)\]\(([^)]+)\)/);
-    const resumoMatch = content.match(/\*\*Resumo:\*\*\s*(.+)/);
-    const compatibilidadeMatch = content.match(/\*\*Compatibilidade com a vaga:\*\*\s*(\d+)%/);
+    // Tentar diferentes padrões de formatação
+    const nomeMatch = content.match(/(?:\*\*)?Nome:(?:\*\*)?\s*(.+)/);
+    const emailMatch = content.match(/(?:\*\*)?Email:(?:\*\*)?\s*(.+)/);
+    const telefoneMatch = content.match(/(?:\*\*)?Telefone:(?:\*\*)?\s*(.+)/);
+    const linkMatch = content.match(/(?:Link para o perfil:|Link:)\s*(?:\[([^\]]+)\]\(([^)]+)\)|(\S+))/);
+    const resumoMatch = content.match(/(?:\*\*)?Resumo:(?:\*\*)?\s*(.+)/);
+    const compatibilidadeMatch = content.match(/(?:\*\*)?Compatibilidade(?:\s+com\s+a\s+vaga)?:?(?:\*\*)?\s*(\d+)%/);
 
     return {
       nome: nomeMatch?.[1]?.trim() || "Candidato",
       email: emailMatch?.[1]?.trim() || "",
       telefone: telefoneMatch?.[1]?.trim() || "",
-      link: linkMatch?.[2] || "",
+      link: linkMatch?.[2] || linkMatch?.[3] || "",
       resumo: resumoMatch?.[1]?.trim() || "",
       compatibilidade: compatibilidadeMatch ? parseInt(compatibilidadeMatch[1]) : 0,
     };
