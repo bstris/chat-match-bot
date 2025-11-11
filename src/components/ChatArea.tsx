@@ -93,7 +93,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
     
     try {
       const { data, error } = await supabase
-        .from('n8n_chat_histories')
+        .from('n8n_chat_histories' as any)
         .select('*')
         .eq('session_key', sessionKey)
         .order('id', { ascending: true });
@@ -165,7 +165,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
       
       // Verificar se já existe uma mensagem idêntica
       const { data: existing, error: checkError } = await supabase
-        .from('n8n_chat_histories')
+        .from('n8n_chat_histories' as any)
         .select('id')
         .eq('session_key', sessionKey)
         .eq('message->>content', message.content)
@@ -184,7 +184,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
       console.log('[DEBUG] Mensagem nova - salvando no Supabase');
       
       await supabase
-        .from('n8n_chat_histories')
+        .from('n8n_chat_histories' as any)
         .insert({
           session_key: sessionKey,
           message: {
@@ -192,7 +192,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
             type: message.type,
             timestamp: new Date().toISOString()
           }
-        });
+        } as any);
       
       console.log('[DEBUG] Mensagem salva com sucesso');
     } catch (error) {
