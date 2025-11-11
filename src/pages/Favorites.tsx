@@ -250,7 +250,7 @@ export default function Favorites() {
               </p>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-1.5">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(270px,1fr))] gap-2">
               {candidates.map((candidate) => (
                 <CandidateCard
                   key={candidate.id}
