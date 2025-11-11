@@ -87,15 +87,13 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
 
   const loadChatHistory = async (sessionId?: string) => {
     const targetSessionId = sessionId || currentSessionId;
-    if (!targetSessionId || !currentChatId) return;
-    
-    const sessionKey = `${targetSessionId}_${currentChatId}`;
+    if (!targetSessionId) return;
     
     try {
       const { data, error } = await supabase
-        .from('n8n_chat_histories' as any)
+        .from('n8n_chat_histories')
         .select('*')
-        .eq('session_key', sessionKey)
+        .eq('session_id', targetSessionId)
         .order('id', { ascending: true });
 
       if (error) throw error;
@@ -161,13 +159,11 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
         content: message.content.substring(0, 50)
       });
 
-      const sessionKey = `${currentSessionId}_${currentChatId}`;
-      
       // Verificar se já existe uma mensagem idêntica
       const { data: existing, error: checkError } = await supabase
-        .from('n8n_chat_histories' as any)
+        .from('n8n_chat_histories')
         .select('id')
-        .eq('session_key', sessionKey)
+        .eq('session_id', currentSessionId)
         .eq('message->>content', message.content)
         .eq('message->>type', message.type)
         .limit(1);
@@ -184,15 +180,15 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
       console.log('[DEBUG] Mensagem nova - salvando no Supabase');
       
       await supabase
-        .from('n8n_chat_histories' as any)
+        .from('n8n_chat_histories')
         .insert({
-          session_key: sessionKey,
+          session_id: currentSessionId,
           message: {
             content: message.content,
             type: message.type,
             timestamp: new Date().toISOString()
           }
-        } as any);
+        });
       
       console.log('[DEBUG] Mensagem salva com sucesso');
     } catch (error) {

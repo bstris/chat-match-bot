@@ -2,13 +2,11 @@ import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatArea } from "@/components/ChatArea";
 import { CandidateResults } from "@/components/CandidateResults";
 import { FavoriteVagaSelector } from "@/components/FavoriteVagaSelector";
-import { DashboardTab } from "@/components/DashboardTab";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, GraduationCap, LayoutDashboard, MessageSquare } from "lucide-react";
+import { Heart, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
@@ -17,31 +15,8 @@ const Index = () => {
   const [userName, setUserName] = useState<string>("");
   const [candidates, setCandidates] = useState<any[]>([]);
   const [sessionCandidates, setSessionCandidates] = useState<Map<string, any[]>>(new Map());
-  const [favorites, setFavorites] = useState<any[]>([]);
   const navigate = useNavigate();
   const { showVagaDialog, setShowVagaDialog, saveToSupabase } = useFavorites();
-
-  useEffect(() => {
-    loadFavorites();
-  }, []);
-
-  const loadFavorites = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase
-          .from('chat_favoritos' as any)
-          .select('*')
-          .eq('recrutador_id', user.id);
-        
-        if (data && !error) {
-          setFavorites(data);
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao carregar favoritos:', error);
-    }
-  };
 
   useEffect(() => {
     loadUserName();
@@ -127,61 +102,42 @@ const Index = () => {
           currentSessionId={selectedSessionId}
         />
         <div className={`${showResults ? 'flex-1' : 'flex-[2]'} transition-all duration-300`}>
-          <Tabs defaultValue="chat" className="h-full">
-            <TabsList className="w-full bg-card border-b border-border rounded-none h-12">
-              <TabsTrigger value="chat" className="flex-1 gap-2">
-                <MessageSquare className="w-4 h-4" />
-                Chat
-              </TabsTrigger>
-              <TabsTrigger value="dashboard" className="flex-1 gap-2">
-                <LayoutDashboard className="w-4 h-4" />
-                Dashboard
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="chat" className="h-[calc(100%-3rem)] mt-0">
-              <ChatArea 
-                sessionId={selectedSessionId}
-                onSessionCreate={(sessionId) => {
-                  setSelectedSessionId(sessionId);
-                  setShowResults(true);
-                }}
-                onCandidatesUpdate={(newCandidates) => {
-                  if (selectedSessionId) {
-                    // Acumular candidatos por sessão
-                    const existingCandidates = sessionCandidates.get(selectedSessionId) || [];
-                    
-                    // Criar um mapa para remover duplicatas por nome e email
-                    const candidateMap = new Map();
-                    
-                    // Adicionar candidatos existentes
-                    existingCandidates.forEach(c => {
-                      const key = `${c.name}_${c.email}`;
-                      candidateMap.set(key, c);
-                    });
-                    
-                    // Adicionar novos candidatos (sobrescrever se já existir)
-                    newCandidates.forEach(c => {
-                      const key = `${c.name}_${c.email}`;
-                      candidateMap.set(key, c);
-                    });
-                    
-                    // Converter de volta para array e ordenar por compatibilidade
-                    const mergedCandidates = Array.from(candidateMap.values())
-                      .sort((a, b) => b.compatibility - a.compatibility);
-                    
-                    // Atualizar estado
-                    setSessionCandidates(prev => new Map(prev).set(selectedSessionId, mergedCandidates));
-                    setCandidates(mergedCandidates);
-                  }
-                }}
-              />
-            </TabsContent>
-
-            <TabsContent value="dashboard" className="h-[calc(100%-3rem)] mt-0">
-              <DashboardTab candidates={candidates} favorites={favorites} />
-            </TabsContent>
-          </Tabs>
+          <ChatArea 
+            sessionId={selectedSessionId}
+            onSessionCreate={(sessionId) => {
+              setSelectedSessionId(sessionId);
+              setShowResults(true);
+            }}
+            onCandidatesUpdate={(newCandidates) => {
+              if (selectedSessionId) {
+                // Acumular candidatos por sessão
+                const existingCandidates = sessionCandidates.get(selectedSessionId) || [];
+                
+                // Criar um mapa para remover duplicatas por nome e email
+                const candidateMap = new Map();
+                
+                // Adicionar candidatos existentes
+                existingCandidates.forEach(c => {
+                  const key = `${c.name}_${c.email}`;
+                  candidateMap.set(key, c);
+                });
+                
+                // Adicionar novos candidatos (sobrescrever se já existir)
+                newCandidates.forEach(c => {
+                  const key = `${c.name}_${c.email}`;
+                  candidateMap.set(key, c);
+                });
+                
+                // Converter de volta para array e ordenar por compatibilidade
+                const mergedCandidates = Array.from(candidateMap.values())
+                  .sort((a, b) => b.compatibility - a.compatibility);
+                
+                // Atualizar estado
+                setSessionCandidates(prev => new Map(prev).set(selectedSessionId, mergedCandidates));
+                setCandidates(mergedCandidates);
+              }
+            }}
+          />
         </div>
         {showResults && <CandidateResults candidates={candidates} />}
       </main>

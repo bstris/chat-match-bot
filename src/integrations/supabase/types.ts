@@ -91,24 +91,6 @@ export type Database = {
           },
         ]
       }
-      chat_memory: {
-        Row: {
-          id: number
-          message: Json | null
-          session_id: string | null
-        }
-        Insert: {
-          id?: number
-          message?: Json | null
-          session_id?: string | null
-        }
-        Update: {
-          id?: number
-          message?: Json | null
-          session_id?: string | null
-        }
-        Relationships: []
-      }
       documents: {
         Row: {
           content: string | null
@@ -264,19 +246,16 @@ export type Database = {
           id: number
           message: Json
           session_id: string
-          session_key: string | null
         }
         Insert: {
           id?: number
           message: Json
           session_id: string
-          session_key?: string | null
         }
         Update: {
           id?: number
           message?: Json
           session_id?: string
-          session_key?: string | null
         }
         Relationships: []
       }
