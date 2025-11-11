@@ -27,6 +27,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { 
     addFavorite, 
@@ -40,8 +41,14 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
   // Função para criar uma nova sessão
   const createNewSession = () => {
     const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newChatId = `chat-${crypto.randomUUID()}`;
+    
     setCurrentSessionId(newSessionId);
+    setCurrentChatId(newChatId);
     setMessages([]); // Limpar mensagens da nova sessão
+    
+    // Armazenar chatId no localStorage associado à sessão
+    localStorage.setItem(`chatId_${newSessionId}`, newChatId);
     
     // Limpar candidatos do painel
     if (onCandidatesUpdate) {
@@ -61,6 +68,18 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
     } else if (propSessionId && propSessionId !== currentSessionId) {
       // Mudança para uma sessão existente
       setCurrentSessionId(propSessionId);
+      
+      // Recuperar ou gerar chatId para esta sessão
+      const storedChatId = localStorage.getItem(`chatId_${propSessionId}`);
+      if (storedChatId) {
+        setCurrentChatId(storedChatId);
+      } else {
+        // Se não existe chatId para esta sessão, criar um novo
+        const newChatId = `chat-${crypto.randomUUID()}`;
+        setCurrentChatId(newChatId);
+        localStorage.setItem(`chatId_${propSessionId}`, newChatId);
+      }
+      
       setMessages([]);
       loadChatHistory(propSessionId);
     }
@@ -211,6 +230,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
       console.log('Enviando para webhook:', { 
         message: newMessage, 
         sessionId: currentSessionId,
+        chatId: currentChatId,
         chatHistory: chatHistory 
       });
       
@@ -222,6 +242,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
         body: JSON.stringify({
           message: newMessage,
           sessionId: currentSessionId,
+          chatId: currentChatId,
           chatHistory: chatHistory
         })
       });
