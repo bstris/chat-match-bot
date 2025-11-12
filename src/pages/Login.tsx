@@ -31,35 +31,38 @@ const Login = () => {
 
   // Detecta se o usuário está retornando do email de recuperação
   useEffect(() => {
-    // Listener para eventos de autenticação do Supabase
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setMode('update-password');
-      }
-      
-      // Se o usuário fizer login com sucesso, redireciona
-      if (event === 'SIGNED_IN' && session && mode === 'login') {
-        navigate('/');
-      }
-    });
-
-    // Também verifica a URL diretamente para casos onde o evento não dispara
-    const checkRecoveryMode = () => {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const queryParams = new URLSearchParams(window.location.search);
-      
+    const checkRecovery = async () => {
+      // Tenta detectar pela URL
+      const url = new URL(window.location.href);
+      const hashParams = new URLSearchParams(url.hash.substring(1));
+      const queryParams = new URLSearchParams(url.search);
       const type = hashParams.get('type') || queryParams.get('type');
-      
-      if (type === 'recovery') {
-        setMode('update-password');
-      }
-    };
-    
-    checkRecoveryMode();
 
-    return () => {
-      subscription.unsubscribe();
+      if (type === 'recovery') {
+        console.log("Modo recuperação detectado via URL");
+        setMode('update-password');
+        return;
+      }
+
+      // Ouve eventos do Supabase
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          console.log("Evento PASSWORD_RECOVERY detectado");
+          setMode('update-password');
+        }
+        
+        // Se o usuário fizer login com sucesso, redireciona
+        if (event === 'SIGNED_IN' && session && mode === 'login') {
+          navigate('/');
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
     };
+
+    checkRecovery();
   }, [navigate, mode]);
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -117,7 +120,7 @@ const Login = () => {
       }
 
       if (mode === 'reset') {
-        const redirectUrl = `${window.location.origin}/login`;
+        const redirectUrl = `${window.location.origin}/login#type=recovery`;
         const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
           redirectTo: redirectUrl
         });
