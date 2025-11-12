@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,15 +23,80 @@ const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
+  const [mode, setMode] = useState<'login' | 'signup' | 'reset' | 'update-password'>('login');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Detecta se o usuário está retornando do email de recuperação
+  useEffect(() => {
+    const checkRecoveryMode = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      
+      if (type === 'recovery') {
+        setMode('update-password');
+      }
+    };
+    
+    checkRecoveryMode();
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      if (mode === 'update-password') {
+        if (newPassword !== confirmPassword) {
+          toast({
+            title: "Senhas não conferem",
+            description: "Por favor, verifique se as senhas são iguais.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        if (newPassword.length < 6) {
+          toast({
+            title: "Senha muito curta",
+            description: "A senha deve ter pelo menos 6 caracteres.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        const { error } = await supabase.auth.updateUser({
+          password: newPassword
+        });
+
+        if (error) {
+          console.error('Erro ao atualizar senha:', error);
+          toast({
+            title: "Erro ao atualizar senha",
+            description: error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+          title: "Senha atualizada!",
+          description: "Sua senha foi alterada com sucesso. Faça login com a nova senha.",
+        });
+        
+        // Limpa o hash da URL e volta para o modo login
+        window.history.replaceState({}, document.title, window.location.pathname);
+        setMode('login');
+        setNewPassword("");
+        setConfirmPassword("");
+        setIsLoading(false);
+        return;
+      }
+
       if (mode === 'reset') {
         const redirectUrl = `${window.location.origin}/login`;
         const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
@@ -129,95 +194,152 @@ const Login = () => {
         <div className="bg-card border border-border rounded-xl shadow-soft p-8">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-semibold text-foreground mb-2">
-              {mode === 'signup' ? 'Criar Conta' : mode === 'reset' ? 'Recuperar Senha' : 'Bem-vindo'}
+              {mode === 'signup' 
+                ? 'Criar Conta' 
+                : mode === 'reset' 
+                ? 'Recuperar Senha' 
+                : mode === 'update-password'
+                ? 'Nova Senha'
+                : 'Bem-vindo'}
             </h1>
             <p className="text-sm text-muted-foreground">
               {mode === 'signup' 
                 ? 'Preencha os dados para criar sua conta' 
                 : mode === 'reset'
                 ? 'Digite seu email para recuperar a senha'
+                : mode === 'update-password'
+                ? 'Digite sua nova senha'
                 : 'Entre com suas credenciais para continuar'}
             </p>
           </div>
 
           <form onSubmit={handleAuth} className="space-y-6">
-            {mode === 'signup' && (
+            {mode === 'update-password' ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="primeiroNome" className="text-sm font-medium text-foreground">
-                    Primeiro Nome
+                  <Label htmlFor="newPassword" className="text-sm font-medium text-foreground">
+                    Nova Senha
                   </Label>
-                  <Input
-                    id="primeiroNome"
-                    type="text"
-                    value={formData.primeiroNome}
-                    onChange={(e) => setFormData(prev => ({ ...prev, primeiroNome: e.target.value }))}
-                    placeholder="João"
-                    required
-                    className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="newPassword"
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Digite sua nova senha"
+                      required
+                      className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="sobrenome" className="text-sm font-medium text-foreground">
-                    Sobrenome
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
+                    Confirmar Nova Senha
                   </Label>
                   <Input
-                    id="sobrenome"
-                    type="text"
-                    value={formData.sobrenome}
-                    onChange={(e) => setFormData(prev => ({ ...prev, sobrenome: e.target.value }))}
-                    placeholder="Silva"
+                    id="confirmPassword"
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirme sua nova senha"
                     required
                     className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </>
-            )}
+            ) : (
+              <>
+                {mode === 'signup' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="primeiroNome" className="text-sm font-medium text-foreground">
+                        Primeiro Nome
+                      </Label>
+                      <Input
+                        id="primeiroNome"
+                        type="text"
+                        value={formData.primeiroNome}
+                        onChange={(e) => setFormData(prev => ({ ...prev, primeiroNome: e.target.value }))}
+                        placeholder="João"
+                        required
+                        className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="Digite seu email"
-                required
-                className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
-              />
-            </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sobrenome" className="text-sm font-medium text-foreground">
+                        Sobrenome
+                      </Label>
+                      <Input
+                        id="sobrenome"
+                        type="text"
+                        value={formData.sobrenome}
+                        onChange={(e) => setFormData(prev => ({ ...prev, sobrenome: e.target.value }))}
+                        placeholder="Silva"
+                        required
+                        className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  </>
+                )}
 
-            {mode !== 'reset' && (
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-foreground">
-                  Senha
-                </Label>
-                <div className="relative">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                    Email
+                  </Label>
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    placeholder="Digite sua senha"
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="Digite seu email"
                     required
-                    className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary pr-10"
+                    className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
                 </div>
-              </div>
+
+                {mode !== 'reset' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                      Senha
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                        placeholder="Digite sua senha"
+                        required
+                        className="h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             <Button
@@ -227,7 +349,13 @@ const Login = () => {
             >
               {isLoading 
                 ? "Processando..." 
-                : mode === 'signup' ? 'Criar Conta' : mode === 'reset' ? 'Enviar Email' : 'Entrar'}
+                : mode === 'signup' 
+                ? 'Criar Conta' 
+                : mode === 'reset' 
+                ? 'Enviar Email' 
+                : mode === 'update-password'
+                ? 'Atualizar Senha'
+                : 'Entrar'}
             </Button>
           </form>
 
@@ -241,14 +369,16 @@ const Login = () => {
               </button>
             )}
             
-            <button
-              onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-              className="text-sm text-primary hover:underline block w-full"
-            >
-              {mode === 'login' 
-                ? "Não tem uma conta? Cadastre-se" 
-                : "Já tem uma conta? Fazer login"}
-            </button>
+            {mode !== 'update-password' && (
+              <button
+                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                className="text-sm text-primary hover:underline block w-full"
+              >
+                {mode === 'login' 
+                  ? "Não tem uma conta? Cadastre-se" 
+                  : "Já tem uma conta? Fazer login"}
+              </button>
+            )}
           </div>
         </div>
       </div>
