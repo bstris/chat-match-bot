@@ -31,9 +31,24 @@ const Login = () => {
 
   // Detecta se o usuário está retornando do email de recuperação
   useEffect(() => {
-    const checkRecoveryMode = async () => {
+    // Listener para eventos de autenticação do Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setMode('update-password');
+      }
+      
+      // Se o usuário fizer login com sucesso, redireciona
+      if (event === 'SIGNED_IN' && session && mode === 'login') {
+        navigate('/');
+      }
+    });
+
+    // Também verifica a URL diretamente para casos onde o evento não dispara
+    const checkRecoveryMode = () => {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const type = hashParams.get('type');
+      const queryParams = new URLSearchParams(window.location.search);
+      
+      const type = hashParams.get('type') || queryParams.get('type');
       
       if (type === 'recovery') {
         setMode('update-password');
@@ -41,7 +56,11 @@ const Login = () => {
     };
     
     checkRecoveryMode();
-  }, []);
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, mode]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
