@@ -31,38 +31,28 @@ const Login = () => {
 
   // Detecta se o usuário está retornando do email de recuperação
   useEffect(() => {
-    const checkRecovery = async () => {
-      // Tenta detectar pela URL
-      const url = new URL(window.location.href);
-      const hashParams = new URLSearchParams(url.hash.substring(1));
-      const queryParams = new URLSearchParams(url.search);
-      const type = hashParams.get('type') || queryParams.get('type');
+    const url = new URL(window.location.href);
+    const type = url.searchParams.get("type");
 
-      if (type === 'recovery') {
-        console.log("Modo recuperação detectado via URL");
-        setMode('update-password');
-        return;
-      }
+    if (type === "recovery") {
+      console.log("Modo recuperação detectado");
+      setMode("update-password");
+    }
 
-      // Ouve eventos do Supabase
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
+    const { data: { subscription } } =
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === "PASSWORD_RECOVERY") {
           console.log("Evento PASSWORD_RECOVERY detectado");
-          setMode('update-password');
+          setMode("update-password");
         }
         
         // Se o usuário fizer login com sucesso, redireciona
-        if (event === 'SIGNED_IN' && session && mode === 'login') {
+        if (event === "SIGNED_IN" && session && mode === "login") {
           navigate('/');
         }
       });
 
-      return () => {
-        subscription.unsubscribe();
-      };
-    };
-
-    checkRecovery();
+    return () => subscription.unsubscribe();
   }, [navigate, mode]);
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -110,8 +100,8 @@ const Login = () => {
           description: "Sua senha foi alterada com sucesso. Faça login com a nova senha.",
         });
         
-        // Limpa o hash da URL e volta para o modo login
-        window.history.replaceState({}, document.title, window.location.pathname);
+        // Limpa a query string da URL e volta para o modo login
+        window.history.replaceState({}, document.title, "/login");
         setMode('login');
         setNewPassword("");
         setConfirmPassword("");
@@ -120,7 +110,7 @@ const Login = () => {
       }
 
       if (mode === 'reset') {
-        const redirectUrl = `${window.location.origin}/login#type=recovery`;
+        const redirectUrl = `${window.location.origin}/login?type=recovery`;
         const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
           redirectTo: redirectUrl
         });
