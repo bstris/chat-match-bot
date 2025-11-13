@@ -159,6 +159,13 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
         content: message.content.substring(0, 50)
       });
 
+      // Obter o user_id do usuário autenticado
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('[DEBUG] Usuário não autenticado');
+        return;
+      }
+
       // Verificar se já existe uma mensagem idêntica
       const { data: existing, error: checkError } = await supabase
         .from('n8n_chat_histories')
@@ -183,6 +190,7 @@ export const ChatArea = ({ sessionId: propSessionId, onSessionCreate, onCandidat
         .from('n8n_chat_histories')
         .insert({
           session_id: currentSessionId,
+          user_id: user.id,
           message: {
             content: message.content,
             type: message.type,
