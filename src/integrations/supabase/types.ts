@@ -56,6 +56,59 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_favoritos: {
+        Row: {
+          candidate_education: string | null
+          candidate_email: string | null
+          candidate_experience: string | null
+          candidate_location: string | null
+          candidate_name: string
+          candidate_phone: string | null
+          compatibility_percentage: number | null
+          created_at: string | null
+          id: string
+          profile_url: string | null
+          user_id: string
+          vaga_id: string
+        }
+        Insert: {
+          candidate_education?: string | null
+          candidate_email?: string | null
+          candidate_experience?: string | null
+          candidate_location?: string | null
+          candidate_name: string
+          candidate_phone?: string | null
+          compatibility_percentage?: number | null
+          created_at?: string | null
+          id?: string
+          profile_url?: string | null
+          user_id: string
+          vaga_id: string
+        }
+        Update: {
+          candidate_education?: string | null
+          candidate_email?: string | null
+          candidate_experience?: string | null
+          candidate_location?: string | null
+          candidate_name?: string
+          candidate_phone?: string | null
+          compatibility_percentage?: number | null
+          created_at?: string | null
+          id?: string
+          profile_url?: string | null
+          user_id?: string
+          vaga_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_favoritos_vaga_id_fkey"
+            columns: ["vaga_id"]
+            isOneToOne: false
+            referencedRelation: "vagas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       db_tb_documentos_di: {
         Row: {
           content: string | null
@@ -161,6 +214,54 @@ export type Database = {
         }
         Relationships: []
       }
+      filtros_personalizados: {
+        Row: {
+          created_at: string | null
+          filtros: Json
+          id: string
+          nome: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          filtros: Json
+          id?: string
+          nome: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          filtros?: Json
+          id?: string
+          nome?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      n8n_chat_histories: {
+        Row: {
+          created_at: string | null
+          id: number
+          message: Json
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          message: Json
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          message?: Json
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       n8n_zapchat_histories: {
         Row: {
           id: number
@@ -179,11 +280,94 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          aprovado: boolean | null
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          nome: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          aprovado?: boolean | null
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id: string
+          nome?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          aprovado?: boolean | null
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nome?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vagas: {
+        Row: {
+          created_at: string | null
+          descricao: string | null
+          id: string
+          recrutador_id: string
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          recrutador_id: string
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          recrutador_id?: string
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_approved: { Args: { _user_id: string }; Returns: boolean }
       match_db_tb_documentos_di: {
         Args: { filter?: Json; match_count?: number; query_embedding: string }
         Returns: {
@@ -256,7 +440,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "recruiter"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -383,6 +567,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "recruiter"],
+    },
   },
 } as const
