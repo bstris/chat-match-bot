@@ -10,11 +10,11 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.12 (cd3cf9e)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
-      candidatos: {
+      candidatos_gupy: {
         Row: {
           content: string | null
           embedding: string | null
@@ -35,81 +35,28 @@ export type Database = {
         }
         Relationships: []
       }
-      chat_favoritos: {
+      candidatos_gupy_copia: {
         Row: {
-          candidate_index: number
-          compatibilidade: number | null
-          created_at: string | null
-          email: string | null
-          id: string
-          link: string | null
-          nome: string
-          recrutador_id: string
-          resumo: string
-          session_id: string
-          telefone: string | null
-          updated_at: string | null
-          vaga_id: string | null
-        }
-        Insert: {
-          candidate_index: number
-          compatibilidade?: number | null
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          link?: string | null
-          nome: string
-          recrutador_id: string
-          resumo: string
-          session_id: string
-          telefone?: string | null
-          updated_at?: string | null
-          vaga_id?: string | null
-        }
-        Update: {
-          candidate_index?: number
-          compatibilidade?: number | null
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          link?: string | null
-          nome?: string
-          recrutador_id?: string
-          resumo?: string
-          session_id?: string
-          telefone?: string | null
-          updated_at?: string | null
-          vaga_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_favoritos_vaga_id_fkey"
-            columns: ["vaga_id"]
-            isOneToOne: false
-            referencedRelation: "vagas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_memory: {
-        Row: {
+          content: string | null
+          embedding: string | null
           id: number
-          message: Json | null
-          session_id: string | null
+          metadata: Json | null
         }
         Insert: {
-          id?: number
-          message?: Json | null
-          session_id?: string | null
+          content?: string | null
+          embedding?: string | null
+          id?: never
+          metadata?: Json | null
         }
         Update: {
-          id?: number
-          message?: Json | null
-          session_id?: string | null
+          content?: string | null
+          embedding?: string | null
+          id?: never
+          metadata?: Json | null
         }
         Relationships: []
       }
-      documents: {
+      db_tb_documentos_di: {
         Row: {
           content: string | null
           embedding: string | null
@@ -130,249 +77,105 @@ export type Database = {
         }
         Relationships: []
       }
-      documents_copy: {
+      DB_TB_LICITACOES_ENERGIA: {
         Row: {
-          content: string | null
+          content: string
           embedding: string | null
           id: number
           metadata: Json | null
         }
         Insert: {
-          content?: string | null
+          content: string
           embedding?: string | null
           id?: number
           metadata?: Json | null
         }
         Update: {
-          content?: string | null
+          content?: string
           embedding?: string | null
           id?: number
           metadata?: Json | null
         }
         Relationships: []
       }
-      documents_index: {
+      DB_TB_LICITACOES_INFRAESTRUTURA: {
         Row: {
-          content: string | null
+          content: string
           embedding: string | null
           id: number
           metadata: Json | null
         }
         Insert: {
-          content?: string | null
+          content: string
           embedding?: string | null
           id?: number
           metadata?: Json | null
         }
         Update: {
-          content?: string | null
+          content?: string
           embedding?: string | null
           id?: number
           metadata?: Json | null
         }
         Relationships: []
       }
-      filtros_personalizados: {
+      DB_TB_LICITACOES_OBRAS: {
         Row: {
-          created_at: string
-          criterios: Json
-          id: string
-          nome: string
-          recrutador_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          criterios: Json
-          id?: string
-          nome: string
-          recrutador_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          criterios?: Json
-          id?: string
-          nome?: string
-          recrutador_id?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      login: {
-        Row: {
+          content: string
+          embedding: string | null
           id: number
-          login: string
-          senha: string | null
+          metadata: Json | null
         }
         Insert: {
+          content: string
+          embedding?: string | null
           id?: number
-          login: string
-          senha?: string | null
+          metadata?: Json | null
         }
         Update: {
+          content?: string
+          embedding?: string | null
           id?: number
-          login?: string
-          senha?: string | null
+          metadata?: Json | null
         }
         Relationships: []
       }
-      mec_instituicoes: {
+      DB_TB_LICITACOES_SANEAMENTO: {
         Row: {
-          categoria_administrativa: string | null
-          codigo_ies: string
-          created_at: string
-          cursos: Json | null
-          id: string
-          municipio: string | null
-          nome_ies: string
-          organizacao_academica: string | null
-          sigla_ies: string | null
-          uf: string | null
-          updated_at: string
+          content: string
+          embedding: string | null
+          id: number
+          metadata: Json | null
         }
         Insert: {
-          categoria_administrativa?: string | null
-          codigo_ies: string
-          created_at?: string
-          cursos?: Json | null
-          id?: string
-          municipio?: string | null
-          nome_ies: string
-          organizacao_academica?: string | null
-          sigla_ies?: string | null
-          uf?: string | null
-          updated_at?: string
+          content: string
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
         }
         Update: {
-          categoria_administrativa?: string | null
-          codigo_ies?: string
-          created_at?: string
-          cursos?: Json | null
-          id?: string
-          municipio?: string | null
-          nome_ies?: string
-          organizacao_academica?: string | null
-          sigla_ies?: string | null
-          uf?: string | null
-          updated_at?: string
+          content?: string
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
         }
         Relationships: []
       }
-      n8n_chat_histories: {
+      n8n_zapchat_histories: {
         Row: {
           id: number
           message: Json
           session_id: string
-          session_key: string | null
-          user_id: string | null
         }
         Insert: {
           id?: number
           message: Json
           session_id: string
-          session_key?: string | null
-          user_id?: string | null
         }
         Update: {
           id?: number
           message?: Json
           session_id?: string
-          session_key?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string
-          id: string
-          nome: string
-          primeiro_nome: string | null
-          sobrenome: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id: string
-          nome: string
-          primeiro_nome?: string | null
-          sobrenome?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          nome?: string
-          primeiro_nome?: string | null
-          sobrenome?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      tabelateste: {
-        Row: {
-          content: string | null
-          embedding: string | null
-          id: number
-          metadata: Json | null
-        }
-        Insert: {
-          content?: string | null
-          embedding?: string | null
-          id?: number
-          metadata?: Json | null
-        }
-        Update: {
-          content?: string | null
-          embedding?: string | null
-          id?: number
-          metadata?: Json | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
-      vagas: {
-        Row: {
-          created_at: string
-          id: string
-          recrutador_id: string
-          titulo: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          recrutador_id: string
-          titulo: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          recrutador_id?: string
-          titulo?: string
-          updated_at?: string
         }
         Relationships: []
       }
@@ -381,58 +184,43 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      candidato_dinamico:
-        | {
-            Args: {
-              data_nascimento?: string
-              email?: string
-              endereco?: string
-              experiencias?: string
-              formacoes?: string
-              idiomas?: string
-              nome?: string
-              perfil?: string
-              qtd?: number
-              query_embedding: string
-              telefone?: string
-            }
-            Returns: {
-              content: string
-              id: number
-              metadata: Json
-              similaridade: number
-            }[]
-          }
-        | {
-            Args: {
-              data_nascimento?: string
-              email?: string
-              endereco?: string
-              experiencias?: string
-              formacoes?: string
-              nome?: string
-              perfil?: string
-              qtd?: number
-              query_embedding: string
-              telefone?: string
-            }
-            Returns: {
-              content: string
-              id: number
-              metadata: Json
-              similaridade: number
-            }[]
-          }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_approved: { Args: { _user_id: string }; Returns: boolean }
-      match_documents: {
+      match_db_tb_documentos_di: {
         Args: { filter?: Json; match_count?: number; query_embedding: string }
+        Returns: {
+          content: string
+          metadata: Json
+          similarity: number
+        }[]
+      }
+      match_documents:
+        | {
+            Args: { match_count?: number; query_embedding: string }
+            Returns: {
+              content: string
+              id: number
+              metadata: Json
+              similarity: number
+            }[]
+          }
+        | {
+            Args: {
+              filter?: Json
+              match_count?: number
+              query_embedding: string
+            }
+            Returns: {
+              content: string
+              id: number
+              metadata: Json
+              similarity: number
+            }[]
+          }
+      match_documents_energia: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
         Returns: {
           content: string
           id: number
@@ -440,16 +228,35 @@ export type Database = {
           similarity: number
         }[]
       }
-      supabase_candidato: {
-        Args: { qtd?: number; query_embedding: string }
+      match_documents_infraestrutura: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
         Returns: {
           content: string
           id: number
+          metadata: Json
+          similarity: number
+        }[]
+      }
+      match_documents_obras: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          content: string
+          id: number
+          metadata: Json
+          similarity: number
         }[]
       }
     }
     Enums: {
-      app_role: "admin" | "recruiter"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -576,8 +383,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "recruiter"],
-    },
+    Enums: {},
   },
 } as const
